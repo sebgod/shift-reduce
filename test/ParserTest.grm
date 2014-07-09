@@ -1,0 +1,24 @@
+"Name"     = 'Parser Test'
+"Author"   = 'Sebastian Godelet'
+"Version"  = '2013-03-04'
+"About"    = 'Using the grammar from http://en.wikipedia.org/wiki/Shift-reduce_parser'
+
+"Auto Whitespace" = 'True'
+"Character Mapping" = 'Unicode'
+"Case Sensitive" = 'True'
+"Start Symbol" = <Assign>
+
+Id = {Letter}+
+IntegerLiteral = {Number}+
+
+<Assign> ::= Id '=' <Sums>
+          
+<Sums>   ::= <Sums> '+' <Products>
+          |  <Products>
+          
+<Products> ::= <Products> '*' <Value>
+            |  <Value>
+            
+<Value>   ::= IntegerLiteral
+           |  Id
+          
