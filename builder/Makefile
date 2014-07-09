@@ -9,18 +9,19 @@ ZIP_FILE=$(ROOT)/$(ZIP_FILE_NAME)
 UNZIP:=unzip
 BUILD_EXE:=$(FOLDER)/GOLDbuild.exe
 WGET:=wget
+MONO:=mono
 
 ifeq ($(OS),Windows_NT)
     BUILD:=$(BUILD_EXE)
 else
-    BUILD:=$(MONO) $(BUILD)
+    BUILD:=$(MONO) $(BUILD_EXE)
 endif
 
 $(FOLDER): $(ZIP_FILE)
-	@for zip in $^ ; do $(UNZIP) $$zip ; done
+	@for zip in $^ ; do cd "$(ROOT)" && $(UNZIP) $$zip ; done
 
 $(ZIP_FILE):
-	@$(WGET) http://www.goldparser.org/builder/files/$(ZIP_FILE_NAME)
+	@cd "$(ROOT)" && $(WGET) http://www.goldparser.org/builder/files/$(ZIP_FILE_NAME)
 
 .PHONY: clean
 clean:
@@ -28,4 +29,5 @@ clean:
 	@rm -fR $(FOLDER)
 
 %.egt: %.grm
+	ls -la
 	$(BUILD) $<
