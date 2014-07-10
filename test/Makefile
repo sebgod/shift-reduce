@@ -4,6 +4,8 @@ ifdef GRADE
     MCFLAGS += -s $(GRADE) --no-detect-libgrades
 endif
 
-.PHONY: libshift_reduce
-libshift_reduce:
+.PHONY: all
+all: test_egt
+
+test_%: test_%.m
 	$(MMC) $(MCFLAGS) -m $@

@@ -1,0 +1,1 @@
+MCFLAGS = --ml shift_reduce --search-library-files-directory ../src
