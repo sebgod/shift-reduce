@@ -1,1 +1,5 @@
-@call make -f%~dp0../builder/Makefile ROOT="%~dp0../builder" %*
+@setlocal enabledelayedexpansion enableextensions
+@set ROOT=%~dp0~~~
+@set ROOT=%ROOT:\~~~=%
+@set ROOT=%ROOT:\=/%
+@call make -f "%~dp0Makefile" ROOT="%ROOT%" %*

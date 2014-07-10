@@ -18,10 +18,10 @@ else
 endif
 
 $(FOLDER): $(ZIP_FILE)
-	@for zip in $^ ; do cd "$(ROOT)" && $(UNZIP) $$zip ; done
+	@cd "$(ROOT)" && $(UNZIP) $(ZIP_FILE_NAME)
 
 $(ZIP_FILE):
-	@cd "$(ROOT)" && $(WGET) http://www.goldparser.org/builder/files/$(ZIP_FILE_NAME)
+	$(WGET) -P "$(ROOT)" http://www.goldparser.org/builder/files/$(ZIP_FILE_NAME)
 
 .PHONY: clean
 clean:
@@ -29,5 +29,4 @@ clean:
 	@rm -fR $(FOLDER)
 
 %.egt: %.grm
-	ls -la
-	$(BUILD) $<
+	@cd $(patsubst %\,%,$(dir $<)) && $(BUILD) $(notdir $<)

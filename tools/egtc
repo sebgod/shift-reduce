@@ -1,5 +1,4 @@
 #!/bin/sh
-BUILDER_DIR=${0%/*}
-BUILDER_DIR=$( cd "${BUILDER_DIR}/../builder" && pwd -P )
-echo "$BUILDER_DIR"
-exec make -f "$BUILDER_DIR/Makefile" ROOT="$BUILDER_DIR" $*
+DIR=${0%/*}
+DIR=`cd "${DIR}" && pwd -P`
+exec make -f "$DIR/Makefile" ROOT="$DIR" $*
