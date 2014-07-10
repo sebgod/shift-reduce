@@ -10,7 +10,7 @@
 
 @if defined FILE @(
     if %EXT_VALID% EQU 0 (
-        echo The extension "%EXT%" is not supported by %~n0, please choose one of %VALID_EXTS% 1>&2
+        echo The extension "%EXT%" is not supported by %~n0, please choose one of {%VALID_EXTS%} 1>&2
         exit /b 1
     )
 
