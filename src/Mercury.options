@@ -1,1 +1,0 @@
-MCFLAGS = --use-grade-subdirs -O5
