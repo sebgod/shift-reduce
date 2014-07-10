@@ -7,18 +7,17 @@ ZIP_FILE_NAME:=$(FOLDER_NAME).zip
 ZIP_FILE=$(ROOT)/$(ZIP_FILE_NAME)
 
 UNZIP:=unzip
-BUILD_EXE:=$(FOLDER)/GOLDbuild.exe
 WGET:=wget
-MONO:=mono
 
 ifeq ($(OS),Windows_NT)
-    BUILD:=$(BUILD_EXE)
+    BUILD:=$(FOLDER)/GOLDbuild.exe
 else
-    BUILD:=$(MONO) $(BUILD_EXE)
+    BUILD:=$(FOLDER)/GOLDbuild
 endif
 
 $(FOLDER): $(ZIP_FILE)
 	@cd "$(ROOT)" && $(UNZIP) $(ZIP_FILE_NAME)
+	@cp "$(ROOT)/GOLDbuild-$(VERSION).unix" "$(FOLDER)/GOLDbuild"
 
 $(ZIP_FILE):
 	$(WGET) -P "$(ROOT)" http://www.goldparser.org/builder/files/$(ZIP_FILE_NAME)
