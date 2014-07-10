@@ -11,6 +11,20 @@ ROOT=`cd "${ROOT}" && pwd -P`
 [ $# -ge 1 ] || die "Please specify a grammar file to be compiled or an egt file to be recompiled"
 
 FILE=$1
-EXT=${FILE##*.}
+EXT=.${FILE##*.}
+F0=`basename $0`
 
-exec make -f "$ROOT/Makefile" ROOT="$ROOT" $*
+case "$EXT" in
+    .grm)
+        FILE=${FILE%%.grm}.egt
+        ;;
+    .egt)
+        # nothing to do
+        ;;
+    *)
+        die "The extension \"$EXT\" is not supported by $F0," \
+            "please choose one of {.grm .egt}"
+        ;;
+esac
+
+exec make -f "$ROOT/Makefile" ROOT="$ROOT" "$FILE"
