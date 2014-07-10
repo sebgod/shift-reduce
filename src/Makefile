@@ -1,14 +1,30 @@
-MMC=mmc
+include ../Make.options
+NAME:=shift_reduce
+LIB:=lib$(NAME)
+MODULES:=$(wildcard *.m)
 
-ifdef GRADE
-    MCFLAGS += -s $(GRADE) --no-detect-libgrades
-endif
+.PHONY: default
+default:
+	$(MMC) $(MCFLAGS) -m $(LIB)
 
-.PHONY: libshift_reduce
-libshift_reduce:
-	$(MMC) $(MCFLAGS) -m $@
+.PHONY: rebuild
+rebuild:
+	$(MMC) --rebuild $(LIB)
 
-.PHONY: test
+.PHONY: install
+install:
+	$(MMC) --make $(LIB).install
 
-test: libshift_reduce
-	cd ../test && $(MAKE)
+tags: $(MODULES)
+	$(MTAGS) $^
+
+.PHONY: clean
+clean:
+	$(MMC) --make $(NAME).clean
+
+.PHONY: realclean
+realclean:
+	$(MMC) --make $(NAME).realclean
+	rm -rf Mercury
+	rm -f $(wildcard *.err) $(wildcard *.mh)
+	rm -f tags
