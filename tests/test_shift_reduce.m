@@ -1,7 +1,7 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
-% File: test_egt.m
+% File: test_shift_reduce.m
 % Copyright © 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
 % Created on: Thu Jul 10 16:47:57 CEST 2014
@@ -10,7 +10,7 @@
 % TODO: module documentation
 %----------------------------------------------------------------------------%
 
-:- module test_egt.
+:- module test_shift_reduce.
 
 :- interface.
 
@@ -51,7 +51,7 @@ main(!IO) :-
     ).
 
 %----------------------------------------------------------------------------%
-:- end_module test_egt.
+:- end_module test_shift_reduce.
 %----------------------------------------------------------------------------%
 
 

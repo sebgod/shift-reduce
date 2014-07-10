@@ -1,0 +1,2 @@
+PROJ_CNAME:=shift_reduce
+PROJ_LIBNAME:=lib$(PROJ_CNAME)

@@ -1,30 +1,30 @@
 include ../Make.options
-NAME:=shift_reduce
-LIB:=lib$(NAME)
+include ../Project.options
+
 MODULES:=$(wildcard *.m)
 
 .PHONY: default
 default:
-	$(MMC) $(MCFLAGS) -m $(LIB)
+	$(MMC) $(MCFLAGS) -m $(PROJ_LIBNAME)
 
 .PHONY: rebuild
 rebuild:
-	$(MMC) --rebuild $(LIB)
+	$(MMC) --rebuild $(PROJ_LIBNAME)
 
 .PHONY: install
 install:
-	$(MMC) --make $(LIB).install
+	$(MMC) --make $(PROJ_LIBNAME).install
 
 tags: $(MODULES)
 	$(MTAGS) $^
 
 .PHONY: clean
 clean:
-	$(MMC) --make $(NAME).clean
+	$(MMC) --make $(PROJ_CNAME).clean
 
 .PHONY: realclean
 realclean:
-	$(MMC) --make $(NAME).realclean
+	$(MMC) --make $(PROJ_CNAME).realclean
 	rm -rf Mercury
 	rm -f $(wildcard *.err) $(wildcard *.mh)
 	rm -f tags
