@@ -39,6 +39,7 @@ main(!IO) :-
         then FileName = Arg0
         else FileName = "ParserTest.egt"
     ),
+    io.format("Testing %s\n", [s(FileName)], !IO),
     io.open_binary_input(FileName, OpenResult, !IO),
     ( OpenResult = ok(FileInput) ->
         read_tables(FileInput, GrammarTables, !IO),
