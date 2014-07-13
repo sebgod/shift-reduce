@@ -8,10 +8,13 @@ show_res() {
 case "$1" in
     -v)
         TARGET=runtests-verbose
+        ;;
     --verbose)
         TARGET=runtests-verbose
+        ;;
     *)
         TARGET=runtests
+        ;;
 esac
 
 ./build.sh $TARGET
