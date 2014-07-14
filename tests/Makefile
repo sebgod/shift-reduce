@@ -18,8 +18,8 @@ runtests:  compile $(RESS)
 
 .PHONY: runtests-verbose
 runtests-verbose: runtests
-	@echo "@@ SUCCESS" && cat SUCCESS
-	@echo "@@ FAILED" && cat FAILED
+	@echo "@@ SUCCESS" && sort -u SUCCESS
+	@echo "@@ FAILED" && sort -u FAILED
 
 Mercury.modules: $(MODULES)
 	@$(MMC) -f $^
@@ -31,8 +31,6 @@ tags: $(MODULES)
 
 .PHONY: compile
 compile: Mercury.modules
-	@rm -f SUCCESS && touch SUCCESS
-	@rm -f FAILED  && touch FAILED
 	@$(foreach test,$(TESTS),$(MMC) --make $(test);)
 
 .PHONY: clean
