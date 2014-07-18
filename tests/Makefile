@@ -18,8 +18,8 @@ runtests:  compile $(RESS)
 
 .PHONY: runtests-verbose
 runtests-verbose: runtests
-	@echo "@@ SUCCESS" && sort -u SUCCESS -o SUCCESS && cat SUCCESS
-	@echo "@@ FAILED" && sort -u FAILED -o FAILED && cat FAILED
+	@echo "@@ SUCCESS" && gsort -u SUCCESS -o SUCCESS && cat SUCCESS && echo "@@"
+	@echo "@@ FAILED"  && gsort -u FAILED  -o FAILED  && cat FAILED  && echo "@@"
 
 Mercury.modules: $(MODULES)
 	@$(MMC) -f $^
