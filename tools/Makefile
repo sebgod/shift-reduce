@@ -1,31 +1,12 @@
-VERSION:=5.2.0
-FOLDER_NAME:=GOLD-Builder-$(VERSION)-Cmd
+include ../Make.options
+include ../Project.options
 
-ROOT:=$(shell pwd)
-FOLDER:=$(ROOT)/$(FOLDER_NAME)
-ZIP_FILE_NAME:=$(FOLDER_NAME).zip
-ZIP_FILE=$(ROOT)/$(ZIP_FILE_NAME)
-
-UNZIP:=unzip
-WGET:=wget
-
-ifeq ($(OS),Windows_NT)
-    BUILD:=$(FOLDER)/GOLDbuild.exe
-else
-    BUILD:=$(FOLDER)/GOLDbuild
-endif
-
-$(FOLDER): $(ZIP_FILE)
-	@cd "$(ROOT)" && $(UNZIP) $(ZIP_FILE_NAME)
-	@cp "$(ROOT)/GOLDbuild-$(VERSION).unix" "$(FOLDER)/GOLDbuild"
-
-$(ZIP_FILE):
-	$(WGET) -P "$(ROOT)" http://www.goldparser.org/builder/files/$(ZIP_FILE_NAME)
+.PHONY: default
+default:
+	cd GOLD-Builder-CMD && $(MAKE) default
+	cd ANSI-C-Engine && $(MAKE) default
 
 .PHONY: clean
 clean:
-	@rm -f $(ZIP_FILE)
-	@rm -fR $(FOLDER)
-
-%.egt: %.grm
-	@cd $(patsubst %\,%,$(dir $<)) && $(BUILD) $(notdir $<)
+	cd GOLD-Builder-CMD && $(MAKE) clean
+	cd ANSI-C-Engine && $(MAKE) clean

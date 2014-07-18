@@ -6,7 +6,7 @@ die () {
 }
 
 ROOT=${0%/*}
-ROOT=`cd "${ROOT}" && pwd -P`
+ROOT=`cd "${ROOT}/GOLD-Builder-Cmd" && pwd -P`
 
 [ $# -ge 1 ] || die "Please specify a grammar file to be compiled or an egt file to be recompiled"
 
