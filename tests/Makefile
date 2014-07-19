@@ -19,7 +19,7 @@ runtests:  compile $(RESS)
 
 .PHONY: runtests-verbose
 runtests-verbose: runtests
-	@$(foreach outcome,$(OUTCOMES),./sort_test_results.sh "$(SORT)" "$(outcome)")
+	@$(foreach outcome,$(OUTCOMES),./sort_test_results.sh "$(SORT)" "$(outcome)";)
 
 Mercury.modules: $(MODULES)
 	@$(MMC) -f $^
