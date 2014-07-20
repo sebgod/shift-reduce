@@ -7,7 +7,7 @@
 % Created on: Thu Jul 10 16:47:57 CEST 2014
 % Stability: low
 %----------------------------------------------------------------------------%
-% TODO: module documentation
+% Testing the simple grammar in ParserTest.grm
 %----------------------------------------------------------------------------%
 
 :- module test_shift_reduce.
