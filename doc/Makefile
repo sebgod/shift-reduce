@@ -17,7 +17,8 @@ $(PROJ_GP_DOMAIN).$(ZIP_EXT): $(PROJ_GP_DOMAIN)
 
 .PHONY: clean
 clean:
+	rm -fR $(PROJ_GP_DOMAIN)
 
 .PHONY: realclean
 realclean:
-	rm -fR $(PROJ_GP_DOMAIN)
+	rm -fR orig
