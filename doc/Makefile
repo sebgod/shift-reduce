@@ -1,11 +1,9 @@
 include ../Make.options
 include ../Project.options
-
+# strange, on Windows wget, use -nc, on Ubuntu, use -N
 .PHONY: default
-default: $(PROJ_GP_DOMAIN)
-
-$(PROJ_GP_DOMAIN):
-	$(WGET) -N -m http://$(PROJ_GP_DOMAIN)/ || true
+default:
+	$(WGET) -r -N -k -l 2 http://$(PROJ_GP_DOMAIN)/ || true
 
 .PHONY: clean
 clean:
