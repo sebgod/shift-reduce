@@ -46,7 +46,7 @@ main(!IO) :-
         io.close_binary_input(FileInput, !IO)
     ; OpenResult = error(IO_Error) ->
         unexpected($file, $pred, "cannot open " ++ FileName ++
-            " because of" ++ io.error_message(IO_Error))
+            " because of " ++ io.error_message(IO_Error))
     ;
         unexpected($file, $pred, "unknown binary input result type")
     ).
