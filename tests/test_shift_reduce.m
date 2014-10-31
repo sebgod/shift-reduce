@@ -35,18 +35,25 @@
 
 main(!IO) :-
     command_line_arguments(Args, !IO),
-    (   if list.index0(Args, 0, Arg0)
-        then FileName = Arg0
-        else FileName = "ParserTest.egt"
+    FileName = ( if Args = [Arg0 | _] then Arg0 else "ParserTest.egt"),
+    CompileCmd = "../tools/grmc *.grm",
+    io.call_system(CompileCmd, CompileResult, !IO),
+    ( CompileResult = ok(ExitCode) ->
+        io.format("%s result: %d\n", [s(CompileCmd), i(ExitCode)], !IO)
+    ; CompileResult = error(CompileError) ->
+        unexpected($file, $pred, "could not compile grammar file: " ++
+            io.error_message(CompileError))
+    ;
+        unexpected($file, $pred, "unknown io.call_system/4 result")
     ),
     io.format("Testing %s\n", [s(FileName)], !IO),
     io.open_binary_input(FileName, OpenResult, !IO),
     ( OpenResult = ok(FileInput) ->
         read_tables(FileInput, GrammarTables, !IO),
         io.close_binary_input(FileInput, !IO)
-    ; OpenResult = error(IO_Error) ->
+    ; OpenResult = error(FileOpenError) ->
         unexpected($file, $pred, "cannot open " ++ FileName ++
-            " because of " ++ io.error_message(IO_Error))
+            ": " ++ io.error_message(FileOpenError))
     ;
         unexpected($file, $pred, "unknown binary input result type")
     ).
