@@ -1,24 +1,21 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
-% File: shift_reduce.m
+% File: grmc.m
 % Copyright © 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
-% Created on: Thu Jul 10 16:11:22 CEST 2014
+% Created on: Thu Nov 09 10:24:22 CST 2014
 % Stability: low
 %----------------------------------------------------------------------------%
-% Top-level module of the shift-reduce parser library.
+% Interface for the command line based grammar compiler.
 %----------------------------------------------------------------------------%
 
-:- module shift_reduce.
+:- module shift_reduce.grmc.
 
 :- interface.
 
-:- include_module shift_reduce.egt.
-:- include_module shift_reduce.grmc.
-
 %----------------------------------------------------------------------------%
 
 %----------------------------------------------------------------------------%
-:- end_module shift_reduce.
+:- end_module shift_reduce.grmc.
 %----------------------------------------------------------------------------%
