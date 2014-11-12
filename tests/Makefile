@@ -13,7 +13,7 @@ OUTCOMES:=SUCCESS FAILED
 runtests:  compile $(RESS)
 
 %.res: %.exp
-	@./run_test.sh "test_$(PROJ_CNAME)" "$*" >"$@" 2>&1 || true
+	@./run_test.sh "test_$(PROJ_CNAME)" "$*" >"$@" 2>"$*.test_err" || true
 	@( $(DIFF) $(DIFF_FLAGS) $*.exp $@ 1>$*.diff && \
 		echo $*>>SUCCESS) || ( echo $*>>FAILED )
 
@@ -36,6 +36,7 @@ compile: Mercury.modules
 .PHONY: clean
 clean:
 	@$(foreach test,$(TESTS),$(MMC) --make $(test).clean;)
+	rm -f *.test_err
 	rm -f $(RESS)
 
 .PHONY: realclean

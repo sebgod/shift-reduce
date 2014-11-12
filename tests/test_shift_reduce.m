@@ -37,17 +37,14 @@
 
 main(!IO) :-
     progdir(ProgDir, !IO),
-    ParserTestGrammar = "ParserTest",
-    GrammarFile = ProgDir / (ParserTestGrammar ++ ".grm"),
-    CompiledGrammarFile = ParserTestGrammar ++ ".egt",
-    compile(ProgDir / ".." / "tools", GrammarFile, !IO),
-    io.format("Testing %s\n", [s(CompiledGrammarFile)], !IO),
-    io.open_binary_input(CompiledGrammarFile, OpenResult, !IO),
+    compile(ProgDir / ".." / "tools", ProgDir / "ParserTest.grm", EgtFile,
+        [force_recompile], !IO),
+    io.open_binary_input(EgtFile, OpenResult, !IO),
     ( OpenResult = ok(FileInput) ->
         read_tables(FileInput, GrammarTables, !IO),
         io.close_binary_input(FileInput, !IO)
     ; OpenResult = error(FileOpenError) ->
-        unexpected($file, $pred, "cannot open " ++ CompiledGrammarFile ++
+        unexpected($file, $pred, "cannot open " ++ EgtFile ++
             ": " ++ io.error_message(FileOpenError))
     ;
         unexpected($file, $pred, "unknown binary input result type")

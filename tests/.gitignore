@@ -2,4 +2,5 @@ FAILED
 SUCCESS
 *.diff
 *.egt
+*.test_err
 test_shift_reduce

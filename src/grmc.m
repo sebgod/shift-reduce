@@ -15,6 +15,12 @@
 :- interface.
 
 :- import_module io.
+:- import_module list.
+
+:- type flag
+    ---> force_recompile.
+
+:- type flags == list(flag).
 
     % progdir(ProgDir, !IO):
     %
@@ -29,7 +35,7 @@
     %
 :- pred compiler_executable(string::out, io::di, io::uo) is det.
 
-    % compile(BaseDir, GrammarFile, !IO)
+    % compile(BaseDir, GrammarFile, EgtFile, !IO)
     %
     % Based on the BaseDir, the compiler executable is executed with the
     % GrammarFile as the argument, it should be an absolute path.
@@ -37,7 +43,11 @@
     % The predicate will succeed if the command line could execute
     % successfully, and will through an exception otherwise.
     %
-:- pred compile(string::in, string::in, io::di, io::uo) is det.
+    % EgtFile unifies with the name of the compiled grammar table,
+    % currently with the extension: .egt, meaning enhanced grammar table.
+    %
+:- pred compile(string::in, string::in, string::out, flags::in,
+                io::di, io::uo) is det.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -45,7 +55,6 @@
 :- implementation.
 
 :- import_module dir.
-:- import_module list.
 :- import_module maybe.
 :- import_module require.
 :- import_module string.
@@ -60,10 +69,15 @@ compiler_executable(Executable, !IO) :-
     io.get_environment_var("OS", MaybeOS, !IO),
     Executable = ( MaybeOS = yes("Windows_NT") ->  "grmc.cmd" ; "grmc" ).
 
-
-compile(BaseDir, GrammarFile, !IO) :-
+compile(BaseDir, GrammarFile, EgtFile, Flags, !IO) :-
     compiler_executable(CompilerExe, !IO),
-    CompileCmd = ( BaseDir / CompilerExe ) ++ " " ++ GrammarFile,
+    EgtFile = det_remove_suffix(GrammarFile, ".grm") ++ ".egt",
+    ( force_recompile `member` Flags ->
+        io.remove_file(EgtFile, _, !IO)
+    ;
+        true
+    ),
+    CompileCmd = ( BaseDir / CompilerExe ) ++ " \"" ++ GrammarFile ++ "\"",
     FailMsg = (pred(Fmt::in, Args::in) is erroneous :-
         unexpected($file, $pred, format("compile [%s] failed: " ++ Fmt,
                     [s(CompileCmd)] ++ Args))),

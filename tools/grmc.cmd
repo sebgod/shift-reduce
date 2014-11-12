@@ -17,7 +17,7 @@
 
     if /i "%EXT%" EQU ".grm" set FILE=%~dp1%~n1.egt
     set FILE=!FILE:\=/!
-    call "%MAKE%" -f "%ROOT_WIN%\Makefile" MAKE="%MAKE%" ROOT="!ROOT!" "!FILE!"
+    call "%MAKE%" -s -f "%ROOT_WIN%\Makefile" MAKE="%MAKE%" ROOT="!ROOT!" "!FILE!"
 ) else (
     echo Please specify a grammar file to be compiled or an egt file to be recompiled 1>&2
     exit /b 1
