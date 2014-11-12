@@ -7,19 +7,13 @@ EXPS:=$(wildcard *.exp)
 TESTS:=$(patsubst test_%.m,test_%,$(TEST_MODULES))
 DIFFS:=$(patsubst %.exp,%.diff,$(EXPS))
 RESS:=$(patsubst %.exp,%.res,$(EXPS))
-OUTCOMES:=SUCCESS FAILED
 
 .PHONY: runtests
 runtests:  compile $(RESS)
 
 %.res: %.exp
 	@./run_test.sh "test_$(PROJ_CNAME)" "$*" >"$@" 2>"$*.test_err" || true
-	@( $(DIFF) $(DIFF_FLAGS) $*.exp $@ 1>$*.diff && \
-		echo $*>>SUCCESS) || ( echo $*>>FAILED )
-
-.PHONY: runtests-verbose
-runtests-verbose: runtests
-	@$(foreach outcome,$(OUTCOMES),./sort_test_results.sh "$(SORT)" "$(outcome)";)
+	@$(DIFF) $(DIFF_FLAGS) $*.exp $@ 1>$*.diff || true
 
 Mercury.modules: $(MODULES)
 	@$(MMC) -f $^
@@ -33,17 +27,18 @@ tags: $(MODULES)
 compile: Mercury.modules
 	@$(foreach test,$(TESTS),$(MMC) --make $(test);)
 
-.PHONY: clean
-clean:
-	@$(foreach test,$(TESTS),$(MMC) --make $(test).clean;)
+.PHONY: cleantemp
+	rm -f $(DIFFS)
+	rm -f *.log
 	rm -f *.test_err
 	rm -f $(RESS)
 
+.PHONY: clean
+clean: cleantemp
+	@$(foreach test,$(TESTS),$(MMC) --make $(test).clean;)
+
 .PHONY: realclean
-realclean:
+realclean: cleantemp
 	@$(foreach test,$(TESTS),$(MMC) --make $(test).realclean;)
-	rm -f $(DIFFS)
-	rm -f $(RESS)
 	rm -rf Mercury
-	rm -f *.log
 	rm -f Mercury.modules
