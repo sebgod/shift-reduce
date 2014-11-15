@@ -10,7 +10,7 @@
 % Primitive operations to read a binary enhanced grammar table
 %----------------------------------------------------------------------------%
 
-:- module egt.primitive.
+:- module shift_reduce.egt.primitive.
 
 :- interface.
 
@@ -20,9 +20,6 @@
 :- import_module string.
 
 %----------------------------------------------------------------------------%
-
-:- type read_pred == pred(byte_index, byte_index, bitmap, bitmap).
-:- inst read_pred == (pred(in, out, bitmap_di, bitmap_uo) is det).
 
 :- pred read_byte(byte::out) `with_type` read_pred `with_inst` read_pred.
 :- pred read_bool(bool::out) `with_type` read_pred `with_inst` read_pred.
@@ -93,5 +90,5 @@ read_chars(!Chars, !Index, !Bitmap) :-
     ).
 
 %----------------------------------------------------------------------------%
-:- end_module egt.primitive.
+:- end_module shift_reduce.egt.primitive.
 %----------------------------------------------------------------------------%

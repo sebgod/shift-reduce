@@ -18,6 +18,11 @@
 
 %----------------------------------------------------------------------------%
 
+:- type read_pred == pred(byte_index, byte_index, bitmap, bitmap).
+:- inst read_pred == (pred(in, out, bitmap_di, bitmap_uo) is det).
+
+%----------------------------------------------------------------------------%
+
 :- type grammar
     --->    grammar(
                 grammar_info :: grammar_info     % Meta-Information
@@ -37,12 +42,23 @@
 :- implementation.
 
 :- include_module primitive.
+:- import_module io. % for tracing
+:- include_module record.
 :- import_module shift_reduce.egt.primitive.
+:- import_module shift_reduce.egt.record.
 %----------------------------------------------------------------------------%
 
 read_tables(Grammar, !Bitmap) :-
-    primitive.read_string(Header, 0, Index, !Bitmap),
+    read_tables(Grammar, 0, _, !Bitmap).
+
+:- pred read_tables(grammar::out, int::in, int::out,
+    bitmap::bitmap_di, bitmap::bitmap_uo) is det.
+
+read_tables(Grammar, !Index, !Bitmap) :-
+    primitive.read_string(Header, !Index, !Bitmap),
     Info = grammar_info(Header),
+    read_record(Record, !Index, !Bitmap),
+    trace [io(!IO)] ( io.write_line(Record, !IO) ),
     Grammar = grammar(Info).
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.egt.
