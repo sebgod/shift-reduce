@@ -44,7 +44,7 @@
     % successfully, and will through an exception otherwise.
     %
     % EgtFile unifies with the name of the compiled grammar table,
-    % currently with the extension: .egt, meaning enhanced grammar table.
+    % currently with the extension: `.egt', meaning enhanced grammar table.
     %
 :- pred compile(string::in, string::in, string::out, flags::in,
                 io::di, io::uo) is det.

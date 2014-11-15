@@ -25,6 +25,7 @@
 
 :- implementation.
 
+:- import_module bitmap.
 :- import_module shift_reduce.
 :- import_module shift_reduce.egt.
 :- import_module shift_reduce.grmc.
@@ -41,7 +42,20 @@ main(!IO) :-
         [force_recompile], !IO),
     io.open_binary_input(EgtFile, OpenResult, !IO),
     ( OpenResult = ok(FileInput) ->
-        read_tables(FileInput, GrammarTables, !IO),
+        read_binary_file_as_bitmap(FileInput, BitmapResult, !IO),
+        ( BitmapResult = ok(Bitmap) ->
+            read_tables(GrammarTables, Bitmap, _),
+            GrammarTables = grammar(grammar_info(Header)),
+            trace [io(!Trace)] (
+                io.format("Header: %s\nBytes read: %d\n",
+                    [s(Header), i(det_num_bytes(Bitmap))], !Trace)
+            )
+        ; BitmapResult = error(BitmapError) ->
+            unexpected($file, $pred, "error reading bitmap" ++
+                io.error_message(BitmapError))
+        ;
+            unexpected($file, $pred, "unknown bitmap error type")
+        ),
         io.close_binary_input(FileInput, !IO)
     ; OpenResult = error(FileOpenError) ->
         unexpected($file, $pred, "cannot open " ++ EgtFile ++
