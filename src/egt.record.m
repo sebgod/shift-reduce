@@ -334,7 +334,14 @@ read_rule(Entries) =
 :- func read_symbol `with_type` parse_func `with_inst` parse_func.
 
 read_symbol(Entries) =
-    unexpected($file, $pred, "invalid symbol record").
+    (
+        Entries = [word(Index), string(Name), word(SymbolConstant)],
+        SymbolKind = from_int(SymbolConstant)
+    ->
+        symbol(Index, Name, SymbolKind)
+    ;
+        unexpected($file, $pred, "invalid symbol record")
+    ).
 
 :- func read_table_counts `with_type` parse_func `with_inst` parse_func.
 
