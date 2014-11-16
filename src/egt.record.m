@@ -36,6 +36,11 @@
             )
     ;       table_counts.
 
+:- type records == list(record).
+
+:- pred read_records(num_bytes::in, records::out)
+    `with_type` read_pred `with_inst` read_pred.
+
 :- pred read_record(record::out)
     `with_type` read_pred `with_inst` read_pred.
 
@@ -52,21 +57,54 @@
 
 %----------------------------------------------------------------------------%
 
+read_records(NumBytes, Records, !Index, !Bitmap) :-
+    read_records(NumBytes, [], RevRecords, !Index, !Bitmap),
+    reverse(RevRecords, Records).
+
+:- pred read_records(num_bytes::in, records::in, records::out)
+    `with_type` read_pred `with_inst` read_pred.
+
+read_records(NumBytes, !Records, !Index, !Bitmap) :-
+    ( !.Index < NumBytes ->
+        read_record(Record, !Index, !Bitmap),
+        !:Records = [Record | !.Records],
+        read_records(NumBytes, !Records, !Index, !Bitmap)
+    ;
+        true
+    ).
+
 read_record(Record, !Index, !Bitmap) :-
     read_ascii(RecordType, !Index, !Bitmap),
     ( RecordType = 'M' ->
         read_word(Count, !Index, !Bitmap),
-        read_entries(Count, [], RevEntries, !Index, !Bitmap),
-        reverse(RevEntries, EntriesWithSpec),
+        read_entries(Count, Entries, !Index, !Bitmap),
         ( EntriesWithSpec = [byte(SpecByte) | Entries] ->
             Spec = char.det_from_int(SpecByte),
-            CountNoSpec = Count - 1,
-            ( Spec = 'p' ->
-                read_property(Record, CountNoSpec, Entries)
-            ;
-                unexpected($file, $pred,
-                    format("record spec <%c> not implemented!", [c(Spec)]))
-            )
+            Reader =
+                ( Spec = 'c' ->
+                    read_character_set_table
+                ; Spec = 'D' ->
+                    read_dfa_table
+                ; Spec = 'g' ->
+                    read_group_table
+                ; Spec = 'I' ->
+                    read_initial_states
+                ; Spec = 'L' ->
+                    read_lalr_table
+                ; Spec = 'p' ->
+                    read_property
+                ; Spec = 'R' ->
+                    read_rule_table
+                ; Spec = 'S' ->
+                    read_symbol_table
+                ; Spec = 't' ->
+                    read_table_counts
+                ;
+                    unexpected($file, $pred,
+                        format("record spec <%c> not implemented!",
+                            [c(Spec)]))
+                ),
+            Record = Reader(Entries)
         ;
             unexpected($file, $pred, "entry without valid specifier!")
         )
@@ -74,6 +112,13 @@ read_record(Record, !Index, !Bitmap) :-
         unexpected($file, $pred,
             format("record type <%c> not implemted!", [c(RecordType)]))
     ).
+
+:- pred read_entries(int::in, entries::out)
+    `with_type` read_pred `with_inst` read_pred.
+
+read_entries(Count, Entries, !Index, !Bitmap) :-
+    read_entries(Count, [], RevEntries, !Index, !Bitmap),
+    reverse(RevEntries, Entries).
 
 :- pred read_entries(int::in, entries::in, entries::out)
     `with_type` read_pred `with_inst` read_pred.
@@ -105,15 +150,60 @@ read_entries(Count, !Entries, !Index, !Bitmap) :-
         true
     ).
 
-:- pred read_property(record::out, int::in, entries::in) is det.
+%----------------------------------------------------------------------------%
 
-read_property(Property, _Count, Entries) :-
-    Property =
+:- type parse_func == (func(entries) = record).
+:- inst parse_func == (func(in) = out is det).
+
+:- func read_character_set_table
+    `with_type` parse_func `with_inst` parse_func.
+
+read_character_set_table(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_dfa_table `with_type` parse_func `with_inst` parse_func.
+
+read_dfa_table(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_group_table `with_type` parse_func `with_inst` parse_func.
+
+read_group_table(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_initial_states `with_type` parse_func `with_inst` parse_func.
+
+read_initial_states(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_lalr_table `with_type` parse_func `with_inst` parse_func.
+
+read_lalr_table(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_property `with_type` parse_func `with_inst` parse_func.
+
+read_property(Entries) =
     ( Entries = [word(Index), string(Key), string(Value)] ->
         property(Index, Key, Value)
     ;
         unexpected($file, $pred, "Invalid property record")
     ).
+
+:- func read_rule_table `with_type` parse_func `with_inst` parse_func.
+
+read_rule_table(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_symbol_table `with_type` parse_func `with_inst` parse_func.
+
+read_symbol_table(Entries) =
+    unexpected($file, $pred, "not implemented").
+
+:- func read_table_counts `with_type` parse_func `with_inst` parse_func.
+
+read_table_counts(Entries) =
+    unexpected($file, $pred, "not implemented").
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.egt.record.

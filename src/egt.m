@@ -44,6 +44,7 @@
 :- include_module primitive.
 :- import_module io. % for tracing
 :- include_module record.
+:- import_module require.
 :- import_module shift_reduce.egt.primitive.
 :- import_module shift_reduce.egt.record.
 %----------------------------------------------------------------------------%
@@ -51,15 +52,20 @@
 read_tables(Grammar, !Bitmap) :-
     read_tables(Grammar, 0, _, !Bitmap).
 
-:- pred read_tables(grammar::out, int::in, int::out,
-    bitmap::bitmap_di, bitmap::bitmap_uo) is det.
+:- pred read_tables(grammar::out)
+    `with_type` read_pred `with_inst` read_pred.
 
 read_tables(Grammar, !Index, !Bitmap) :-
     primitive.read_string(Header, !Index, !Bitmap),
     Info = grammar_info(Header),
-    read_record(Record, !Index, !Bitmap),
-    trace [io(!IO)] ( io.write_line(Record, !IO) ),
-    Grammar = grammar(Info).
+    ( NumBytes = num_bytes(!.Bitmap) ->
+        read_records(NumBytes, Records, !Index, !Bitmap),
+        trace [io(!IO)] ( io.write_line(Records, !IO) ),
+        Grammar = grammar(Info)
+    ;
+        unexpected($file, $pred, "Bitmap is not initialised!")
+    ).
+
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.egt.
 %----------------------------------------------------------------------------%
