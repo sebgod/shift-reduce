@@ -290,7 +290,7 @@ read_character_set(Entries) = Charset :-
         ),
         Charset = character_set(Index, UnicodePlane, RangeCount, Ranges)
     ;
-        unexpected($file, $pred, "Invalid character set record")
+        unexpected($file, $pred, "invalid character set record")
     ).
 
 :- func read_dfa `with_type` parse_func `with_inst` parse_func.
@@ -309,7 +309,7 @@ read_initial_states(Entries) =
     ( Entries = [word(Dfa), word(Lalr)] ->
         initial_states(Dfa, Lalr)
     ;
-        unexpected($file, $pred, "Invalid initial states record")
+        unexpected($file, $pred, "invalid initial states record")
     ).
 
 :- func read_lalr `with_type` parse_func `with_inst` parse_func.
@@ -323,7 +323,7 @@ read_property(Entries) =
     ( Entries = [word(Index), string(Key), string(Value)] ->
         property(Index, Key, Value)
     ;
-        unexpected($file, $pred, "Invalid property record")
+        unexpected($file, $pred, "invalid property record")
     ).
 
 :- func read_rule `with_type` parse_func `with_inst` parse_func.
@@ -334,7 +334,7 @@ read_rule(Entries) =
 :- func read_symbol `with_type` parse_func `with_inst` parse_func.
 
 read_symbol(Entries) =
-    unexpected($file, $pred, "not implemented").
+    unexpected($file, $pred, "invalid symbol record").
 
 :- func read_table_counts `with_type` parse_func `with_inst` parse_func.
 
@@ -344,13 +344,13 @@ read_table_counts(Entries) =
         table_counts(SymbolTable, CharacterSetTable, RuleTable,
             DFATable, LALRTable, GroupTable)
     ;
-        unexpected($file, $pred, "Invalid table counts record")
+        unexpected($file, $pred, "invalid table counts record")
     ).
 
 %----------------------------------------------------------------------------%
 % enum(T) instances for named constants:
 %  * symbol_kind
-%  * action
+%  * action_kind
 %  * group_advance_mode
 %  * group_ending_mode
 
