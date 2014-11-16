@@ -142,7 +142,8 @@
                 count_dfa           :: word,
                 count_lalr          :: word,
                 count_group         :: word
-            ).
+            )
+    ;       fake. % XXX only for debugging.
 
 :- type records == list(record).
 
@@ -295,13 +296,13 @@ read_character_set(Entries) = Charset :-
 
 :- func read_dfa `with_type` parse_func `with_inst` parse_func.
 
-read_dfa(Entries) =
-    unexpected($file, $pred, "not implemented").
+read_dfa(Entries) = fake. % XXX only for debugging
+%    unexpected($file, $pred, "not implemented").
 
 :- func read_group `with_type` parse_func `with_inst` parse_func.
 
-read_group(Entries) =
-    unexpected($file, $pred, "not implemented").
+read_group(Entries) = fake. % XXX only for debugging
+%    unexpected($file, $pred, "not implemented").
 
 :- func read_initial_states `with_type` parse_func `with_inst` parse_func.
 
@@ -314,8 +315,8 @@ read_initial_states(Entries) =
 
 :- func read_lalr `with_type` parse_func `with_inst` parse_func.
 
-read_lalr(Entries) =
-    unexpected($file, $pred, "not implemented").
+read_lalr(Entries) = fake. % XXX only for debugging
+%    unexpected($file, $pred, "not implemented").
 
 :- func read_property `with_type` parse_func `with_inst` parse_func.
 
@@ -328,8 +329,8 @@ read_property(Entries) =
 
 :- func read_rule `with_type` parse_func `with_inst` parse_func.
 
-read_rule(Entries) =
-    unexpected($file, $pred, "not implemented").
+read_rule(Entries) = fake. % XXX only for debugging
+%    unexpected($file, $pred, "not implemented").
 
 :- func read_symbol `with_type` parse_func `with_inst` parse_func.
 
