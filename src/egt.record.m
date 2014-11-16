@@ -266,8 +266,32 @@ read_entries(Count, !Entries, !Index, !Bitmap) :-
 :- func read_character_set
     `with_type` parse_func `with_inst` parse_func.
 
-read_character_set(Entries) =
-    unexpected($file, $pred, "not implemented").
+read_character_set(Entries) = Charset :-
+    (
+        Entries = [word(Index), word(UnicodePlane),
+                   word(RangeCount), empty | RangeEntries]
+    ->
+        generate_foldl(RangeCount,
+            (pred(_Idx::in, character_range(Start, End)::out,
+                in, out) is det -->
+                (
+                    [word(StartUnit), word(EndUnit)]
+                ->
+                    { Start = char.det_from_int(StartUnit),
+                      End   = char.det_from_int(EndUnit)
+                    }
+                ;
+                    { unexpected($file, $pred, "premature end of range list") }
+                )
+            ),
+            Ranges,
+            RangeEntries,
+            _RangeRest
+        ),
+        Charset = character_set(Index, UnicodePlane, RangeCount, Ranges)
+    ;
+        unexpected($file, $pred, "Invalid character set record")
+    ).
 
 :- func read_dfa `with_type` parse_func `with_inst` parse_func.
 
