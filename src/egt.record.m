@@ -77,7 +77,7 @@ read_record(Record, !Index, !Bitmap) :-
     read_ascii(RecordType, !Index, !Bitmap),
     ( RecordType = 'M' ->
         read_word(Count, !Index, !Bitmap),
-        read_entries(Count, Entries, !Index, !Bitmap),
+        read_entries(Count, EntriesWithSpec, !Index, !Bitmap),
         ( EntriesWithSpec = [byte(SpecByte) | Entries] ->
             Spec = char.det_from_int(SpecByte),
             Reader =
