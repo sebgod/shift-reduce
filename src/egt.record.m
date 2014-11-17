@@ -25,19 +25,13 @@
 %----------------------------------------------------------------------------%
 
 :- type entry
-    --->    empty
+    --->    reserved
     ;       bool(bool)
     ;       byte(byte)
     ;       word(word)
     ;       string(string).
 
 :- type entries == list(entry).
-
-:- type character_range
-    --->    character_range(
-                cr_start :: char,
-                cr_end   :: char
-            ).
 
 :- type symbol_kind
     --->    nonterminal     % normal nonterminal
@@ -83,7 +77,7 @@
 
 :- instance enum(action_kind).
 
-:- type charset == sparse_bitset(char).
+:- type chars == sparse_bitset(char).
 
 :- type action
     --->    action(
@@ -92,20 +86,21 @@
                 action_target_index   :: word
             ).
 
-:- type record
-    --->    character_set(
-                cs_index            :: word,
+:- type charset
+    --->    charset(
                 cs_unicode_plane    :: word,
                 cs_range_count      :: word,  % number of ranges
-                cs_ranges           :: charset
-            )
-    ;       dfa_state(
-                dfa_index           :: word,
+                cs_ranges           :: chars
+            ).
+
+:- type dfa_state
+    --->    dfa_state(
                 dfa_accept_index    :: maybe(word),
                 dfa_edges           :: array(edge)
-            )
-    ;       group(
-                group_index             :: word,
+            ).
+
+:- type group
+    --->    group(
                 group_name              :: string,
                 group_container_index   :: word,
                 group_start_index       :: word,
@@ -113,45 +108,48 @@
                 group_advance_mode      :: group_advance_mode,
                 group_ending_mode       :: group_ending_mode,
                 group_nestings          :: array(group_nesting)
-            )
-    ;       initial_states(
-                init_dfa    :: word,  % initial DFA state (0)
-                linit_lalr  :: word   % initial LALR state (0)
-            )
-    ;       lalr_state(
-                lalr_index      :: word,
-                lalr_actions    :: array(action)
-            )
-    ;       production(
-                prod_index          :: word,
-                prod_head_index     :: word,
-                prod_symbols        :: array(word) % indicies to symbol table
-            )
-    ;       property(
-                prop_index  :: word,
-                prop_key    :: string,
-                prop_value  :: string
-            )
-    ;       symbol(
-                sym_index   :: word,
-                sym_name    :: string,
-                sym_kind    :: symbol_kind
-            )
-    ;       table_counts(
-                count_symbol        :: word,
-                count_character_set :: word,
-                count_rule          :: word,
-                count_dfa           :: word,
-                count_lalr          :: word,
-                count_group         :: word
             ).
 
-:- type records == list(record).
+:- type initial_states
+    --->    initial_states(
+                init_dfa    :: word,  % initial DFA state (0)
+                linit_lalr  :: word   % initial LALR state (0)
+            ).
 
-:- pred read_records(num_bytes::in, records::out)
-    `with_type` read_pred `with_inst` read_pred.
+:- type lalr_state
+    --->    lalr_state(
+                lalr_actions    :: array(action)
+            ).
 
-:- pred read_record(record::out)
+:- type production
+    --->    production(
+                prod_head_index     :: word,
+                prod_symbols        :: array(word) % indicies to symbol table
+            ).
+
+:- type property
+    --->    property(
+                prop_key    :: string,
+                prop_value  :: string
+            ).
+
+:- type symbol
+    --->    symbol(
+                sym_name    :: string,
+                sym_kind    :: symbol_kind
+            ).
+
+:- type table_counts
+    --->    table_counts(
+                count_symbol    :: word,
+                count_charset   :: word,
+                count_rule      :: word,
+                count_dfa       :: word,
+                count_lalr      :: word,
+                count_group     :: word
+            ).
+
+:- pred read_tables(num_bytes::in, grammar::in, grammar::out)
     `with_type` read_pred `with_inst` read_pred.
 
 %----------------------------------------------------------------------------%
@@ -166,61 +164,73 @@
 :- import_module require.
 
 %----------------------------------------------------------------------------%
-
-read_records(NumBytes, Records, !Index, !Bitmap) :-
-    read_records(NumBytes, [], RevRecords, !Index, !Bitmap),
-    reverse(RevRecords, Records).
-
-:- pred read_records(num_bytes::in, records::in, records::out)
-    `with_type` read_pred `with_inst` read_pred.
-
-read_records(NumBytes, !Records, !Index, !Bitmap) :-
+read_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
     ( !.Index < NumBytes ->
-        read_record(Record, !Index, !Bitmap),
-        !:Records = [Record | !.Records],
-        read_records(NumBytes, !Records, !Index, !Bitmap)
-    ;
-        true
-    ).
-
-read_record(Record, !Index, !Bitmap) :-
-    read_ascii(RecordType, !Index, !Bitmap),
-    ( RecordType = 'M' ->
-        read_word(Count, !Index, !Bitmap),
-        read_entries(Count, EntriesWithSpec, !Index, !Bitmap),
-        ( EntriesWithSpec = [byte(SpecByte) | Entries] ->
-            Spec = char.det_from_int(SpecByte),
-            Reader =
+        read_ascii(RecordType, !Index, !Bitmap),
+        ( RecordType = 'M' ->
+            read_word(Count, !Index, !Bitmap),
+            read_entries(Count, EntriesWithSpec, !Index, !Bitmap),
+            (
+                EntriesWithSpec = [byte(SpecByte) | Entries]
+            ->
+                Spec = char.det_from_int(SpecByte),
                 ( Spec = 'c' ->
-                    read_character_set
+                    !:Grammar = !.Grammar ^ charsets ^ elem(CharsetIndex) :=
+                        read_charset(Entries, CharsetIndex)
                 ; Spec = 'D' ->
-                    read_dfa
+                    !:Grammar = !.Grammar ^ dfa_states ^ elem(DfaIndex) :=
+                        read_dfa(Entries, DfaIndex)
                 ; Spec = 'g' ->
-                    read_group
+                    !:Grammar = !.Grammar ^ groups ^ elem(GroupIndex) :=
+                        read_group(Entries, GroupIndex)
                 ; Spec = 'I' ->
-                    read_initial_states
+                    !:Grammar = !.Grammar ^ initial_states :=
+                        read_initial_states(Entries, _)
                 ; Spec = 'L' ->
-                    read_lalr
+                    !:Grammar = !.Grammar ^ lalr_states ^ elem(LalrIndex) :=
+                        read_lalr(Entries, LalrIndex)
                 ; Spec = 'p' ->
-                    read_property
+                    !:Grammar = !.Grammar ^ properties ^ elem(PropIndex) :=
+                        read_property(Entries, PropIndex)
                 ; Spec = 'R' ->
-                    read_rule
+                    !:Grammar = !.Grammar ^ productions ^ elem(ProdIndex) :=
+                        read_production(Entries, ProdIndex)
                 ; Spec = 'S' ->
-                    read_symbol
+                    !:Grammar = !.Grammar ^ symbols ^ elem(SymbolIndex) :=
+                        read_symbol(Entries, SymbolIndex)
                 ; Spec = 't' ->
-                    read_table_counts
+                    read_table_counts(Entries, _)
+                        = table_counts(SymbolCount, CharsetCount, RuleCount,
+                                       DfaCount, LalrCount, GroupCount),
+                    !:Grammar = !.Grammar ^ symbols :=
+                        init(SymbolCount, symbol("", error)),
+                    !:Grammar = !.Grammar ^ charsets :=
+                        init(CharsetCount, charset(-1, -1, init)),
+                    !:Grammar = !.Grammar ^ productions :=
+                        init(RuleCount, production(-1, make_empty_array)),
+                    !:Grammar = !.Grammar ^ dfa_states :=
+                        init(DfaCount, dfa_state(no, make_empty_array)),
+                    !:Grammar = !.Grammar ^ lalr_states :=
+                        init(LalrCount, lalr_state(make_empty_array)),
+                    !:Grammar = !.Grammar ^ groups :=
+                        init(GroupCount, group("", -1, -1, -1, token, open,
+                            make_empty_array))
                 ;
                     unexpected($file, $pred,
                         format("record spec <%c> not implemented!",
                             [c(Spec)]))
-                ),
-            Record = Reader(Entries)
+                )
+            ;
+                unexpected($file, $pred, "entry without valid specifier!")
+            )
         ;
-            unexpected($file, $pred, "entry without valid specifier!")
-        )
+            unexpected($file, $pred,
+                format("record type <%c> not implemted!", [c(RecordType)]))
+        ),
+
+        read_tables(NumBytes, !Grammar, !Index, !Bitmap)
     ;
-        unexpected($file, $pred,
-            format("record type <%c> not implemted!", [c(RecordType)]))
+        true
     ).
 
 %----------------------------------------------------------------------------%
@@ -239,7 +249,7 @@ read_entries(Count, !Entries, !Index, !Bitmap) :-
     ( Count > 0 ->
         read_ascii(Type, !Index, !Bitmap),
         ( Type = 'E' ->
-            Entry = empty
+            Entry = reserved
         ; Type = 'B' ->
             read_bool(Bool, !Index, !Bitmap),
             Entry = bool(Bool)
@@ -264,27 +274,27 @@ read_entries(Count, !Entries, !Index, !Bitmap) :-
 
 %----------------------------------------------------------------------------%
 
-:- type parse_func == (func(entries) = record).
-:- inst parse_func == (func(in) = out is det).
+:- type parse_func(T) == (func(entries, word) = T).
+:- inst parse_func == (func(in, out) = out is det).
 
 %----------------------------------------------------------------------------%
 
-:- func read_character_set
-    `with_type` parse_func `with_inst` parse_func.
+:- func read_charset `with_type` parse_func(charset) `with_inst` parse_func.
 
-read_character_set(Entries) = Charset :-
+read_charset(Entries, Index) = Charset :-
     (
-        Entries = [word(Index), word(UnicodePlane),
-                   word(RangeCount), empty | RangeEntries]
+        Entries = [word(Index0), word(UnicodePlane),
+                   word(RangeCount), reserved | RangeEntries]
     ->
+        Index = Index0,
         build_charset(sparse_bitset.init, Ranges, RangeEntries, RangeRest),
         expect(is_empty(RangeRest), $file, $pred, "still have range entries"),
-        Charset = character_set(Index, UnicodePlane, RangeCount, Ranges)
+        Charset = charset(UnicodePlane, RangeCount, Ranges)
     ;
         unexpected($file, $pred, "invalid character set record")
     ).
 
-:- pred build_charset(charset::in, charset::out, entries::in, entries::out).
+:- pred build_charset(chars::in, chars::out, entries::in, entries::out).
 
 build_charset(!Charset) -->
     ( if [word(StartUnit), word(EndUnit)] then
@@ -301,18 +311,19 @@ build_charset(!Charset) -->
 
 %----------------------------------------------------------------------------%
 
-:- func read_dfa `with_type` parse_func `with_inst` parse_func.
+:- func read_dfa `with_type` parse_func(dfa_state) `with_inst` parse_func.
 
-read_dfa(Entries) = DfaState :-
-    ( Entries = [word(Index), bool(AcceptState), word(AcceptIndex), empty |
-                 EdgeEntries]
+read_dfa(Entries, Index) = DfaState :-
+    ( Entries = [word(Index0), bool(AcceptState), word(AcceptIndex),
+                 reserved | EdgeEntries]
     ->
+        Index = Index0,
         MaybeAcceptIndex = (AcceptState = yes -> yes(AcceptIndex) ; no),
         generate_foldl(length(EdgeEntries) // 3,
             (pred(_Idx::in, edge(CharSetIndex, TargetIndex)::out,
                 in, out) is det -->
                 (
-                    [word(CharSetIndex0), word(TargetIndex0), empty]
+                    [word(CharSetIndex0), word(TargetIndex0), reserved]
                 ->
                     { CharSetIndex = CharSetIndex0,
                       TargetIndex  = TargetIndex0 }
@@ -325,24 +336,25 @@ read_dfa(Entries) = DfaState :-
             EdgeRest
         ),
         expect(is_empty(EdgeRest), $file, $pred, "still have edge entries"),
-        DfaState = dfa_state(Index, MaybeAcceptIndex, Edges)
+        DfaState = dfa_state(MaybeAcceptIndex, Edges)
     ;
         unexpected($file, $pred, "invalid DFA state record")
     ).
 
 %----------------------------------------------------------------------------%
 
-:- func read_group `with_type` parse_func `with_inst` parse_func.
+:- func read_group `with_type` parse_func(group) `with_inst` parse_func.
 
-read_group(Entries) = (
+read_group(Entries, Index) = (
         unexpected($file, $pred, "invalid group record")
     ).
 
 %----------------------------------------------------------------------------%
 
-:- func read_initial_states `with_type` parse_func `with_inst` parse_func.
+:- func read_initial_states `with_type` parse_func(initial_states)
+    `with_inst` parse_func.
 
-read_initial_states(Entries) =
+read_initial_states(Entries, -1) =
     ( Entries = [word(Dfa), word(Lalr)] ->
         initial_states(Dfa, Lalr)
     ;
@@ -351,17 +363,18 @@ read_initial_states(Entries) =
 
 %----------------------------------------------------------------------------%
 
-:- func read_lalr `with_type` parse_func `with_inst` parse_func.
+:- func read_lalr `with_type` parse_func(lalr_state) `with_inst` parse_func.
 
-read_lalr(Entries) = LalrState :-
-    ( Entries = [word(Index), empty | ActionEntries] ->
+read_lalr(Entries, Index) = LalrState :-
+    ( Entries = [word(Index0), reserved | ActionEntries] ->
+        Index = Index0,
         generate_foldl(length(ActionEntries) // 4,
             (pred(_Idx::in,
                 action(SymbolIndex, ActionKind, TargetIndex)::out,
                 in, out) is det -->
                 (
                     [word(SymbolIndex0), word(ActionConstant),
-                     word(TargetIndex0), empty]
+                     word(TargetIndex0), reserved]
                 ->
                     { SymbolIndex = SymbolIndex0,
                       ( if ActionKind0 = from_int(ActionConstant) then
@@ -381,28 +394,32 @@ read_lalr(Entries) = LalrState :-
         ),
         expect(is_empty(ActionRest), $file, $pred,
             "still have action entries"),
-        LalrState = lalr_state(Index, Actions)
+        LalrState = lalr_state(Actions)
     ;
         unexpected($file, $pred, "invalid LALR state record")
     ).
 
 %----------------------------------------------------------------------------%
 
-:- func read_property `with_type` parse_func `with_inst` parse_func.
+:- func read_property `with_type` parse_func(property)
+    `with_inst` parse_func.
 
-read_property(Entries) =
-    ( Entries = [word(Index), string(Key), string(Value)] ->
-        property(Index, Key, Value)
+read_property(Entries, Index) = Property :-
+    ( Entries = [word(Index0), string(Key), string(Value)] ->
+        Index = Index0,
+        Property = property(Key, Value)
     ;
         unexpected($file, $pred, "invalid property record")
     ).
 
 %----------------------------------------------------------------------------%
 
-:- func read_rule `with_type` parse_func `with_inst` parse_func.
+:- func read_production `with_type` parse_func(production)
+    `with_inst` parse_func.
 
-read_rule(Entries) = Rule :-
-    ( Entries = [word(Index), word(HeadIndex), empty | SymbolEntries] ->
+read_production(Entries, Index) = Rule :-
+    ( Entries = [word(Index0), word(HeadIndex), reserved | SymbolEntries] ->
+        Index = Index0,
         generate_foldl(length(SymbolEntries),
             (pred(_Idx::in, SymbolIndex::out, in, out) is det -->
                 (
@@ -419,30 +436,32 @@ read_rule(Entries) = Rule :-
         ),
         expect(is_empty(SymbolRest), $file, $pred,
             "still have symbol entries"),
-        Rule = production(Index, HeadIndex, Symbols)
+        Rule = production(HeadIndex, Symbols)
     ;
         unexpected($file, $pred, "invalid rule record")
     ).
 
 %----------------------------------------------------------------------------%
 
-:- func read_symbol `with_type` parse_func `with_inst` parse_func.
+:- func read_symbol `with_type` parse_func(symbol) `with_inst` parse_func.
 
-read_symbol(Entries) =
+read_symbol(Entries, Index) = Symbol :-
     (
-        Entries = [word(Index), string(Name), word(SymbolConstant)],
+        Entries = [word(Index0), string(Name), word(SymbolConstant)],
         SymbolKind = from_int(SymbolConstant)
     ->
-        symbol(Index, Name, SymbolKind)
+        Index = Index0,
+        Symbol = symbol(Name, SymbolKind)
     ;
         unexpected($file, $pred, "invalid symbol record")
     ).
 
 %----------------------------------------------------------------------------%
 
-:- func read_table_counts `with_type` parse_func `with_inst` parse_func.
+:- func read_table_counts `with_type` parse_func(table_counts)
+    `with_inst` parse_func.
 
-read_table_counts(Entries) =
+read_table_counts(Entries, -1) =
     ( Entries = [word(SymbolTable), word(CharacterSetTable), word(RuleTable),
                  word(DFATable), word(LALRTable), word(GroupTable)] ->
         table_counts(SymbolTable, CharacterSetTable, RuleTable,

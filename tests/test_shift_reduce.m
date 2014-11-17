@@ -44,12 +44,8 @@ main(!IO) :-
     ( OpenResult = ok(FileInput) ->
         read_binary_file_as_bitmap(FileInput, BitmapResult, !IO),
         ( BitmapResult = ok(Bitmap) ->
-            read_tables(GrammarTables, Bitmap, _),
-            GrammarTables = grammar(grammar_info(Header)),
-            trace [io(!Trace)] (
-                io.format("Header: %s\nBytes read: %d\n",
-                    [s(Header), i(det_num_bytes(Bitmap))], !Trace)
-            )
+            parse_grammar(Grammar, Bitmap, _),
+            io.write_line(Grammar, !IO)
         ; BitmapResult = error(BitmapError) ->
             unexpected($file, $pred, "error reading bitmap" ++
                 io.error_message(BitmapError))
