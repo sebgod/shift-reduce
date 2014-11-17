@@ -21,6 +21,7 @@
 :- import_module enum.
 :- import_module list.
 :- import_module maybe.
+:- import_module sparse_bitset.
 %----------------------------------------------------------------------------%
 
 :- type entry
@@ -82,6 +83,8 @@
 
 :- instance enum(action_kind).
 
+:- type charset == sparse_bitset(char).
+
 :- type action
     --->    action(
                 action_symbol_index   :: word,
@@ -94,12 +97,11 @@
                 cs_index            :: word,
                 cs_unicode_plane    :: word,
                 cs_range_count      :: word,  % number of ranges
-                cs_ranges           :: array(character_range)
+                cs_ranges           :: charset
             )
     ;       dfa_state(
                 dfa_index           :: word,
                 dfa_accept_index    :: maybe(word),
-                dfa_edge_count      :: word,
                 dfa_edges           :: array(edge)
             )
     ;       group(
@@ -110,7 +112,6 @@
                 group_end_index         :: word,
                 group_advance_mode      :: group_advance_mode,
                 group_ending_mode       :: group_ending_mode,
-                group_nesting_count     :: word, % number of nestings
                 group_nestings          :: array(group_nesting)
             )
     ;       initial_states(
@@ -119,13 +120,11 @@
             )
     ;       lalr_state(
                 lalr_index      :: word,
-                lalr_count      :: word,
                 lalr_actions    :: array(action)
             )
     ;       production(
                 prod_index          :: word,
                 prod_head_index     :: word,
-                prod_symbol_count   :: word,
                 prod_symbols        :: array(word) % indicies to symbol table
             )
     ;       property(
@@ -224,6 +223,8 @@ read_record(Record, !Index, !Bitmap) :-
             format("record type <%c> not implemted!", [c(RecordType)]))
     ).
 
+%----------------------------------------------------------------------------%
+
 :- pred read_entries(int::in, entries::out)
     `with_type` read_pred `with_inst` read_pred.
 
@@ -266,6 +267,8 @@ read_entries(Count, !Entries, !Index, !Bitmap) :-
 :- type parse_func == (func(entries) = record).
 :- inst parse_func == (func(in) = out is det).
 
+%----------------------------------------------------------------------------%
+
 :- func read_character_set
     `with_type` parse_func `with_inst` parse_func.
 
@@ -274,28 +277,29 @@ read_character_set(Entries) = Charset :-
         Entries = [word(Index), word(UnicodePlane),
                    word(RangeCount), empty | RangeEntries]
     ->
-        generate_foldl(RangeCount,
-            (pred(_Idx::in, character_range(Start, End)::out,
-                in, out) is det -->
-                (
-                    [word(StartUnit), word(EndUnit)]
-                ->
-                    { Start = char.det_from_int(StartUnit),
-                      End   = char.det_from_int(EndUnit)
-                    }
-                ;
-                    { unexpected($file, $pred, "premature end of range list") }
-                )
-            ),
-            Ranges,
-            RangeEntries,
-            RangeRest
-        ),
+        build_charset(sparse_bitset.init, Ranges, RangeEntries, RangeRest),
         expect(is_empty(RangeRest), $file, $pred, "still have range entries"),
         Charset = character_set(Index, UnicodePlane, RangeCount, Ranges)
     ;
         unexpected($file, $pred, "invalid character set record")
     ).
+
+:- pred build_charset(charset::in, charset::out, entries::in, entries::out).
+
+build_charset(!Charset) -->
+    ( if [word(StartUnit), word(EndUnit)] then
+        {
+            Chars = map(char.det_from_int, StartUnit `..` EndUnit),
+            insert_list(Chars, !Charset)
+        },
+        build_charset(!Charset)
+    else if [_] then
+        { unexpected($file, $pred, "premature end of range list") }
+    else
+        { true }
+    ).
+
+%----------------------------------------------------------------------------%
 
 :- func read_dfa `with_type` parse_func `with_inst` parse_func.
 
@@ -304,8 +308,7 @@ read_dfa(Entries) = DfaState :-
                  EdgeEntries]
     ->
         MaybeAcceptIndex = (AcceptState = yes -> yes(AcceptIndex) ; no),
-        EdgeCount = length(EdgeEntries) // 3,
-        generate_foldl(EdgeCount,
+        generate_foldl(length(EdgeEntries) // 3,
             (pred(_Idx::in, edge(CharSetIndex, TargetIndex)::out,
                 in, out) is det -->
                 (
@@ -322,15 +325,20 @@ read_dfa(Entries) = DfaState :-
             EdgeRest
         ),
         expect(is_empty(EdgeRest), $file, $pred, "still have edge entries"),
-        DfaState = dfa_state(Index, MaybeAcceptIndex, EdgeCount, Edges)
+        DfaState = dfa_state(Index, MaybeAcceptIndex, Edges)
     ;
         unexpected($file, $pred, "invalid DFA state record")
     ).
 
+%----------------------------------------------------------------------------%
+
 :- func read_group `with_type` parse_func `with_inst` parse_func.
 
-read_group(Entries) =
-    unexpected($file, $pred, "invalid group record").
+read_group(Entries) = (
+        unexpected($file, $pred, "invalid group record")
+    ).
+
+%----------------------------------------------------------------------------%
 
 :- func read_initial_states `with_type` parse_func `with_inst` parse_func.
 
@@ -341,12 +349,13 @@ read_initial_states(Entries) =
         unexpected($file, $pred, "invalid initial states record")
     ).
 
+%----------------------------------------------------------------------------%
+
 :- func read_lalr `with_type` parse_func `with_inst` parse_func.
 
 read_lalr(Entries) = LalrState :-
     ( Entries = [word(Index), empty | ActionEntries] ->
-        ActionCount = length(ActionEntries) // 4,
-        generate_foldl(ActionCount,
+        generate_foldl(length(ActionEntries) // 4,
             (pred(_Idx::in,
                 action(SymbolIndex, ActionKind, TargetIndex)::out,
                 in, out) is det -->
@@ -372,10 +381,12 @@ read_lalr(Entries) = LalrState :-
         ),
         expect(is_empty(ActionRest), $file, $pred,
             "still have action entries"),
-        LalrState = lalr_state(Index, ActionCount, Actions)
+        LalrState = lalr_state(Index, Actions)
     ;
         unexpected($file, $pred, "invalid LALR state record")
     ).
+
+%----------------------------------------------------------------------------%
 
 :- func read_property `with_type` parse_func `with_inst` parse_func.
 
@@ -386,12 +397,13 @@ read_property(Entries) =
         unexpected($file, $pred, "invalid property record")
     ).
 
+%----------------------------------------------------------------------------%
+
 :- func read_rule `with_type` parse_func `with_inst` parse_func.
 
 read_rule(Entries) = Rule :-
     ( Entries = [word(Index), word(HeadIndex), empty | SymbolEntries] ->
-        SymbolCount = length(SymbolEntries),
-        generate_foldl(SymbolCount,
+        generate_foldl(length(SymbolEntries),
             (pred(_Idx::in, SymbolIndex::out, in, out) is det -->
                 (
                     [word(SymbolIndex0)]
@@ -407,10 +419,12 @@ read_rule(Entries) = Rule :-
         ),
         expect(is_empty(SymbolRest), $file, $pred,
             "still have symbol entries"),
-        Rule = production(Index, HeadIndex, SymbolCount, Symbols)
+        Rule = production(Index, HeadIndex, Symbols)
     ;
         unexpected($file, $pred, "invalid rule record")
     ).
+
+%----------------------------------------------------------------------------%
 
 :- func read_symbol `with_type` parse_func `with_inst` parse_func.
 
@@ -423,6 +437,8 @@ read_symbol(Entries) =
     ;
         unexpected($file, $pred, "invalid symbol record")
     ).
+
+%----------------------------------------------------------------------------%
 
 :- func read_table_counts `with_type` parse_func `with_inst` parse_func.
 
