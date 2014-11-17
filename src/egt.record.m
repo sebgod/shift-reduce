@@ -121,9 +121,10 @@
                 lalr_actions    :: array(action)
             )
     ;       production(
-                prod_index      :: word,
-                prod_head_index :: word,
-                prod_symbols    :: array(word) % indicies to symbol table
+                prod_index          :: word,
+                prod_head_index     :: word,
+                prod_symbol_count   :: word,
+                prod_symbols        :: array(word) % indicies to symbol table
             )
     ;       property(
                 prop_index  :: word,
@@ -142,8 +143,7 @@
                 count_dfa           :: word,
                 count_lalr          :: word,
                 count_group         :: word
-            )
-    ;       fake. % XXX only for debugging.
+            ).
 
 :- type records == list(record).
 
@@ -296,13 +296,13 @@ read_character_set(Entries) = Charset :-
 
 :- func read_dfa `with_type` parse_func `with_inst` parse_func.
 
-read_dfa(Entries) = fake. % XXX only for debugging
-%    unexpected($file, $pred, "not implemented").
+read_dfa(Entries) =
+    unexpected($file, $pred, "invalid DFA state record").
 
 :- func read_group `with_type` parse_func `with_inst` parse_func.
 
-read_group(Entries) = fake. % XXX only for debugging
-%    unexpected($file, $pred, "not implemented").
+read_group(Entries) =
+    unexpected($file, $pred, "invalid group record").
 
 :- func read_initial_states `with_type` parse_func `with_inst` parse_func.
 
@@ -315,8 +315,8 @@ read_initial_states(Entries) =
 
 :- func read_lalr `with_type` parse_func `with_inst` parse_func.
 
-read_lalr(Entries) = fake. % XXX only for debugging
-%    unexpected($file, $pred, "not implemented").
+read_lalr(Entries) =
+    unexpected($file, $pred, "invalid LALR record").
 
 :- func read_property `with_type` parse_func `with_inst` parse_func.
 
@@ -329,8 +329,27 @@ read_property(Entries) =
 
 :- func read_rule `with_type` parse_func `with_inst` parse_func.
 
-read_rule(Entries) = fake. % XXX only for debugging
-%    unexpected($file, $pred, "not implemented").
+read_rule(Entries) = Rule :-
+    ( Entries = [word(Index), word(HeadIndex), empty | SymbolEntries] ->
+        SymbolCount = length(SymbolEntries),
+        generate_foldl(SymbolCount,
+            (pred(_Idx::in, SymbolIndex::out, in, out) is det -->
+                (
+                    [word(SymbolIndex0)]
+                ->
+                    { SymbolIndex = SymbolIndex0 }
+                ;
+                    { unexpected($file, $pred, "premature end of range list") }
+                )
+            ),
+            Symbols,
+            SymbolEntries,
+            _SymbolRest
+        ),
+        Rule = production(Index, HeadIndex, SymbolCount, Symbols)
+    ;
+        unexpected($file, $pred, "invalid rule record")
+    ).
 
 :- func read_symbol `with_type` parse_func `with_inst` parse_func.
 
