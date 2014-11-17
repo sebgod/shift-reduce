@@ -74,7 +74,7 @@ parse_grammar(Grammar, !Index, !Bitmap) :-
             make_empty_array, make_empty_array, make_empty_array,
             % Size of property table fixed since no entry in table count
             init(8, property("", ""))),
-        read_tables(NumBytes, Grammar0, Grammar, !Index, !Bitmap)
+        build_tables(NumBytes, Grammar0, Grammar, !Index, !Bitmap)
     ;
         unexpected($file, $pred, "Bitmap is not initialised!")
     ).
