@@ -99,6 +99,7 @@
     ;       dfa_state(
                 dfa_index           :: word,
                 dfa_accept_index    :: maybe(word),
+                dfa_edge_count      :: word,
                 dfa_edges           :: array(edge)
             )
     ;       group(
@@ -118,6 +119,7 @@
             )
     ;       lalr_state(
                 lalr_index      :: word,
+                lalr_count      :: word,
                 lalr_actions    :: array(action)
             )
     ;       production(
@@ -320,7 +322,7 @@ read_dfa(Entries) = DfaState :-
             EdgeRest
         ),
         expect(is_empty(EdgeRest), $file, $pred, "still have edge entries"),
-        DfaState = dfa_state(Index, MaybeAcceptIndex, Edges)
+        DfaState = dfa_state(Index, MaybeAcceptIndex, EdgeCount, Edges)
     ;
         unexpected($file, $pred, "invalid DFA state record")
     ).
@@ -341,8 +343,39 @@ read_initial_states(Entries) =
 
 :- func read_lalr `with_type` parse_func `with_inst` parse_func.
 
-read_lalr(Entries) =
-    unexpected($file, $pred, "invalid LALR record").
+read_lalr(Entries) = LalrState :-
+    ( Entries = [word(Index), empty | ActionEntries] ->
+        ActionCount = length(ActionEntries) // 4,
+        generate_foldl(ActionCount,
+            (pred(_Idx::in,
+                action(SymbolIndex, ActionKind, TargetIndex)::out,
+                in, out) is det -->
+                (
+                    [word(SymbolIndex0), word(ActionConstant),
+                     word(TargetIndex0), empty]
+                ->
+                    { SymbolIndex = SymbolIndex0,
+                      ( if ActionKind0 = from_int(ActionConstant) then
+                          ActionKind = ActionKind0
+                      else
+                          unexpected($file, $pred, "unknown action kind")
+                      ),
+                      TargetIndex  = TargetIndex0 }
+                ;
+                    { unexpected($file, $pred,
+                        "premature end of action list") }
+                )
+            ),
+            Actions,
+            ActionEntries,
+            ActionRest
+        ),
+        expect(is_empty(ActionRest), $file, $pred,
+            "still have action entries"),
+        LalrState = lalr_state(Index, ActionCount, Actions)
+    ;
+        unexpected($file, $pred, "invalid LALR state record")
+    ).
 
 :- func read_property `with_type` parse_func `with_inst` parse_func.
 
