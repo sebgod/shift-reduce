@@ -287,8 +287,9 @@ read_character_set(Entries) = Charset :-
             ),
             Ranges,
             RangeEntries,
-            _RangeRest
+            RangeRest
         ),
+        expect(is_empty(RangeRest), $file, $pred, "still have range entries"),
         Charset = character_set(Index, UnicodePlane, RangeCount, Ranges)
     ;
         unexpected($file, $pred, "invalid character set record")
@@ -296,8 +297,33 @@ read_character_set(Entries) = Charset :-
 
 :- func read_dfa `with_type` parse_func `with_inst` parse_func.
 
-read_dfa(Entries) =
-    unexpected($file, $pred, "invalid DFA state record").
+read_dfa(Entries) = DfaState :-
+    ( Entries = [word(Index), bool(AcceptState), word(AcceptIndex), empty |
+                 EdgeEntries]
+    ->
+        MaybeAcceptIndex = (AcceptState = yes -> yes(AcceptIndex) ; no),
+        EdgeCount = length(EdgeEntries) // 3,
+        generate_foldl(EdgeCount,
+            (pred(_Idx::in, edge(CharSetIndex, TargetIndex)::out,
+                in, out) is det -->
+                (
+                    [word(CharSetIndex0), word(TargetIndex0), empty]
+                ->
+                    { CharSetIndex = CharSetIndex0,
+                      TargetIndex  = TargetIndex0 }
+                ;
+                    { unexpected($file, $pred, "premature end of edge list") }
+                )
+            ),
+            Edges,
+            EdgeEntries,
+            EdgeRest
+        ),
+        expect(is_empty(EdgeRest), $file, $pred, "still have edge entries"),
+        DfaState = dfa_state(Index, MaybeAcceptIndex, Edges)
+    ;
+        unexpected($file, $pred, "invalid DFA state record")
+    ).
 
 :- func read_group `with_type` parse_func `with_inst` parse_func.
 
@@ -344,8 +370,10 @@ read_rule(Entries) = Rule :-
             ),
             Symbols,
             SymbolEntries,
-            _SymbolRest
+            SymbolRest
         ),
+        expect(is_empty(SymbolRest), $file, $pred,
+            "still have symbol entries"),
         Rule = production(Index, HeadIndex, SymbolCount, Symbols)
     ;
         unexpected($file, $pred, "invalid rule record")
