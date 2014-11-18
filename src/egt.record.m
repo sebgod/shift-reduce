@@ -24,16 +24,6 @@
                 linit_lalr  :: word   % initial LALR state (0)
             ).
 
-:- type table_counts
-    --->    table_counts(
-                count_symbol    :: word,
-                count_charset   :: word,
-                count_rule      :: word,
-                count_dfa       :: word,
-                count_lalr      :: word,
-                count_group     :: word
-            ).
-
 :- pred build_tables(num_bytes::in, grammar::in, grammar::out)
     `with_type` read_pred `with_inst` read_pred.
 
@@ -50,6 +40,16 @@
 :- import_module require.
 
 %----------------------------------------------------------------------------%
+
+:- type table_counts
+    --->    table_counts(
+                count_symbol    :: word,
+                count_charset   :: word,
+                count_rule      :: word,
+                count_dfa       :: word,
+                count_lalr      :: word,
+                count_group     :: word
+            ).
 
 build_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
     ( !.Index < NumBytes ->
