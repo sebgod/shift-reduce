@@ -24,6 +24,7 @@
 :- include_module production.
 :- include_module property.
 :- include_module record.
+:- include_module state.
 :- include_module symbol.
 
 %----------------------------------------------------------------------------%
@@ -38,6 +39,7 @@
 :- import_module shift_reduce.egt.production.
 :- import_module shift_reduce.egt.property.
 :- import_module shift_reduce.egt.record.
+:- import_module shift_reduce.egt.state.
 :- import_module shift_reduce.egt.symbol.
 
 %----------------------------------------------------------------------------%

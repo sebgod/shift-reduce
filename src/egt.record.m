@@ -18,12 +18,6 @@
 
 %----------------------------------------------------------------------------%
 
-:- type initial_states
-    --->    initial_states(
-                init_dfa    :: word,  % initial DFA state (0)
-                linit_lalr  :: word   % initial LALR state (0)
-            ).
-
 :- pred build_tables(num_bytes::in, grammar::in, grammar::out)
     `with_type` read_pred `with_inst` read_pred.
 
@@ -33,23 +27,13 @@
 :- implementation.
 
 :- import_module array. % for ^ 'elem :='/1
-:- import_module char.
+:- import_module char. % for det_from_Int/1
 :- import_module int.
 :- import_module list.
-:- import_module string.
+:- import_module string. % for type poly_type
 :- import_module require.
 
 %----------------------------------------------------------------------------%
-
-:- type table_counts
-    --->    table_counts(
-                count_symbol    :: word,
-                count_charset   :: word,
-                count_rule      :: word,
-                count_dfa       :: word,
-                count_lalr      :: word,
-                count_group     :: word
-            ).
 
 build_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
     ( !.Index < NumBytes ->
@@ -60,7 +44,7 @@ build_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
             (
                 EntriesWithSpec = [byte(SpecByte) | Entries]
             ->
-                Spec = char.det_from_int(SpecByte),
+                Spec = det_from_int(SpecByte),
                 ( Spec = 'c' ->
                     !:Grammar = !.Grammar ^ charsets ^ elem(CharsetIndex) :=
                         parse_charset(Entries, CharsetIndex)
@@ -120,17 +104,15 @@ build_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
 
 %----------------------------------------------------------------------------%
 
-:- func parse_initial_states `with_type` parse_func(initial_states)
-    `with_inst` parse_func.
-
-parse_initial_states(Entries, -1) =
-    ( Entries = [word(Dfa), word(Lalr)] ->
-        initial_states(Dfa, Lalr)
-    ;
-        unexpected($file, $pred, "invalid initial states record")
-    ).
-
-%----------------------------------------------------------------------------%
+:- type table_counts
+    --->    table_counts(
+                count_symbol    :: word,
+                count_charset   :: word,
+                count_rule      :: word,
+                count_dfa       :: word,
+                count_lalr      :: word,
+                count_group     :: word
+            ).
 
 :- func parse_table_counts `with_type` parse_func(table_counts)
     `with_inst` parse_func.
