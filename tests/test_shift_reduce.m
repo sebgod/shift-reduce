@@ -25,7 +25,6 @@
 
 :- implementation.
 
-:- import_module bitmap.
 :- import_module shift_reduce.
 :- import_module shift_reduce.egt.
 :- import_module shift_reduce.egt.grammar.
@@ -33,33 +32,18 @@
 :- import_module dir.
 :- import_module list.
 :- import_module require.
-:- import_module string.
 
 %----------------------------------------------------------------------------%
 
 main(!IO) :-
     progdir(ProgDir, !IO),
-    compile(ProgDir / ".." / "tools", ProgDir / "ParserTest.grm", EgtFile,
-        [force_recompile], !IO),
-    io.open_binary_input(EgtFile, OpenResult, !IO),
-    ( OpenResult = ok(FileInput) ->
-        read_binary_file_as_bitmap(FileInput, BitmapResult, !IO),
-        ( BitmapResult = ok(Bitmap) ->
-            parse_grammar(Grammar, Bitmap, _),
-            io.write_line(Grammar, !IO)
-        ; BitmapResult = error(BitmapError) ->
-            unexpected($file, $pred, "error reading bitmap" ++
-                io.error_message(BitmapError))
-        ;
-            unexpected($file, $pred, "unknown bitmap error type")
-        ),
-        io.close_binary_input(FileInput, !IO)
-    ; OpenResult = error(FileOpenError) ->
-        unexpected($file, $pred, "cannot open " ++ EgtFile ++
-            ": " ++ io.error_message(FileOpenError))
-    ;
-        unexpected($file, $pred, "unknown binary input result type")
-    ).
+    compile(
+        ProgDir / ".." / "tools",
+        ProgDir / "ParserTest.grm", EgtFile,
+        [force_recompile],
+        !IO),
+    from_file(EgtFile, Grammar, !IO),
+    io.write_line(Grammar, !IO).
 
 %----------------------------------------------------------------------------%
 :- end_module test_shift_reduce.

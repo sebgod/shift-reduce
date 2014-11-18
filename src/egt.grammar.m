@@ -16,10 +16,16 @@
 
 :- import_module array.
 :- import_module bitmap.
+:- import_module io.
 
 %----------------------------------------------------------------------------%
 
 :- type table(T) == array(T).
+
+:- type grammar_info
+    --->    grammar_info(
+                info_header :: string   % EGT File Header
+            ).
 
 :- type grammar
     --->    grammar(
@@ -34,14 +40,10 @@
                 properties      :: table(property)
             ).
 
-:- type grammar_info
-    --->    grammar_info(
-                info_header :: string   % EGT File Header
-            ).
+:- pred from_file(string::in, grammar::out, io::di, io::uo) is det.
 
-:- pred parse_grammar(grammar::out,
+:- pred from_bitmap(grammar::out,
     bitmap::bitmap_di, bitmap::bitmap_uo) is det.
-
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -49,17 +51,38 @@
 :- implementation.
 
 :- import_module require.
+:- import_module string. % for ++/2
 
 %----------------------------------------------------------------------------%
 
-parse_grammar(Grammar, !Bitmap) :-
+from_file(EgtFile, Grammar, !IO) :-
+    io.open_binary_input(EgtFile, OpenResult, !IO),
+    ( OpenResult = ok(FileInput) ->
+        read_binary_file_as_bitmap(FileInput, BitmapResult, !IO),
+        ( BitmapResult = ok(Bitmap) ->
+            from_bitmap(Grammar, Bitmap, _)
+        ; BitmapResult = error(BitmapError) ->
+            unexpected($file, $pred, "error reading bitmap" ++
+                io.error_message(BitmapError))
+        ;
+            unexpected($file, $pred, "unknown bitmap error type")
+        ),
+        io.close_binary_input(FileInput, !IO)
+    ; OpenResult = error(FileOpenError) ->
+        unexpected($file, $pred, "cannot open " ++ EgtFile ++
+            ": " ++ io.error_message(FileOpenError))
+    ;
+        unexpected($file, $pred, "unknown binary input result type")
+    ).
+
+from_bitmap(Grammar, !Bitmap) :-
     parse_grammar(Grammar, 0, _, !Bitmap).
 
 :- pred parse_grammar(grammar::out)
     `with_type` read_pred `with_inst` read_pred.
 
 parse_grammar(Grammar, !Index, !Bitmap) :-
-    primitive.read_string(Header, !Index, !Bitmap),
+    read_string(Header, !Index, !Bitmap),
     Info = grammar_info(Header),
     ( NumBytes = num_bytes(!.Bitmap) ->
         Grammar0 = grammar(Info, initial_states(-1, -1),
