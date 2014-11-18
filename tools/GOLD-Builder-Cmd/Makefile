@@ -12,7 +12,8 @@ WGET:=wget
 ifeq ($(OS),Windows_NT)
     BUILD:=$(FOLDER)/GOLDbuild.exe
 else
-    BUILD:=$(FOLDER)/GOLDbuild
+    CSHARP_COMPILER:=$(shell mmc --output-csharp-compiler-type)
+    BUILD:=$(CSHARP_COMPILER) $(FOLDER)/GOLDbuild
 endif
 
 .PHONY: default
