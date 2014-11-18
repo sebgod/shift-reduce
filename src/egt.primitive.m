@@ -14,12 +14,15 @@
 
 :- interface.
 
-:- import_module bitmap.
+:- import_module bitmap. % for types byte_index, bitmap
 :- import_module bool.
 :- import_module char.
 :- import_module string.
 
 %----------------------------------------------------------------------------%
+
+:- type read_pred == pred(byte_index, byte_index, bitmap, bitmap).
+:- inst read_pred == (pred(in, out, bitmap_di, bitmap_uo) is det).
 
 :- pred read_byte(byte::out) `with_type` read_pred `with_inst` read_pred.
 :- pred read_bool(bool::out) `with_type` read_pred `with_inst` read_pred.

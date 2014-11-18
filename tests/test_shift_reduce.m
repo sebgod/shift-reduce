@@ -28,6 +28,7 @@
 :- import_module bitmap.
 :- import_module shift_reduce.
 :- import_module shift_reduce.egt.
+:- import_module shift_reduce.egt.grammar.
 :- import_module shift_reduce.grmc.
 :- import_module dir.
 :- import_module list.
