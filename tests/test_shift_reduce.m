@@ -37,26 +37,6 @@
 
 %----------------------------------------------------------------------------%
 
-:- use_module stream.
-
-:- pred lex(lexer::in, lexer_io::di, lexer_io::uo) is det.
-
-lex(Lexer, !LexerIO) :-
-    stream.get(Lexer, Result, !LexerIO),
-    ( if Result = stream.ok(token(Index, Chars)) then
-        true,
-        trace [io(!TraceIO)] (
-            io.format("(%d, %s)\n",
-                [i(Index), s(from_char_list(Chars))], !TraceIO)
-        )
-    else if Result = stream.error(Error) then
-        error(io.error_message(Error))
-    else if Result = stream.eof then
-        true
-    else
-        unexpected($file, $pred, "unknown stream result")
-    ).
-
 main(!IO) :-
     progdir(ProgDir, !IO),
     compile(

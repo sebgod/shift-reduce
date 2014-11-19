@@ -47,12 +47,33 @@
 
 :- instance reader(lexer, token, lexer_io, io.error).
 
+:- pred lex(lexer::in, lexer_io::di, lexer_io::uo) is det.
+
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
-% TODO: include/import/use modules
+:- import_module require.
+:- import_module string.
+
+%----------------------------------------------------------------------------%
+
+lex(Lexer, !LexerIO) :-
+    stream.get(Lexer, Result, !LexerIO),
+    ( if Result = stream.ok(token(Index, Chars)) then
+        true,
+        trace [io(!TraceIO)] (
+            io.format("(%d, %s)\n",
+                [i(Index), s(from_char_list(Chars))], !TraceIO)
+        )
+    else if Result = stream.error(Error) then
+        error(io.error_message(Error))
+    else if Result = stream.eof then
+        true
+    else
+        unexpected($file, $pred, "unknown stream result")
+    ).
 
 %----------------------------------------------------------------------------%
 :- instance stream(lexer, lexer_io) where [
@@ -75,6 +96,8 @@ lexer_name(Lexer, Name, lexer_io(!.IO), lexer_io(!:IO)) :-
 
 read_token(Lexer, Result, !LexerIO) :-
     Result = ok(token(-1, [])).
+
+
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.lexer.
