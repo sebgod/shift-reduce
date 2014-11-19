@@ -15,6 +15,7 @@
 :- interface.
 
 :- import_module enum.
+:- import_module shift_reduce.egt.entry.
 
 %----------------------------------------------------------------------------%
 
@@ -45,9 +46,9 @@
 
 :- implementation.
 
-:- import_module bitmap. % for type word
 :- import_module list.
 :- import_module require.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
@@ -69,7 +70,7 @@ parse_symbol(Entries, Index) = Symbol :-
     (from_int(X) = Y :- symbol_kind_to_constant(Y, X))
 ].
 
-:- pred symbol_kind_to_constant(symbol_kind, word).
+:- pred symbol_kind_to_constant(symbol_kind, table_index).
 :- mode symbol_kind_to_constant(in, out) is det.
 :- mode symbol_kind_to_constant(out, in) is semidet.
 

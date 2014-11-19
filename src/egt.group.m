@@ -14,15 +14,16 @@
 
 :- interface.
 
-:- import_module bitmap. % for type word.
 :- import_module enum.
+:- import_module shift_reduce.egt.entry.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
     % The table index of the group in the group table.
 :- type group_nesting
     --->    group_nesting(
-                grp_nesting_index :: word % zero-indexed
+                grp_nesting_index :: table_index % zero-indexed
             ).
 
 :- type group_advance_mode
@@ -40,9 +41,9 @@
 :- type group
     --->    group(
                 group_name              :: string,
-                group_container_index   :: word,
-                group_start_index       :: word,
-                group_end_index         :: word,
+                group_container_index   :: table_index,
+                group_start_index       :: table_index,
+                group_end_index         :: table_index,
                 group_advance_mode      :: group_advance_mode,
                 group_ending_mode       :: group_ending_mode,
                 group_nestings          :: table(group_nesting)
@@ -57,12 +58,11 @@
 
 :- implementation.
 
-:- import_module array. % for make_empty_array
 :- import_module require.
 
 %----------------------------------------------------------------------------%
 
-empty = group("", -1, -1, -1, token, open, make_empty_array).
+empty = group("", -1, -1, -1, token, open, empty).
 
 parse_group(Entries, Index) = (
         unexpected($file, $pred, "invalid group record")
@@ -78,7 +78,7 @@ parse_group(Entries, Index) = (
     (from_int(X) = Y :- group_advance_mode_to_constant(Y, X))
 ].
 
-:- pred group_advance_mode_to_constant(group_advance_mode, word).
+:- pred group_advance_mode_to_constant(group_advance_mode, table_index).
 :- mode group_advance_mode_to_constant(in, out) is det.
 :- mode group_advance_mode_to_constant(out, in) is semidet.
 
@@ -92,7 +92,7 @@ group_advance_mode_to_constant(character, 1).
     (from_int(X) = Y :- group_ending_mode_to_constant(Y, X))
 ].
 
-:- pred group_ending_mode_to_constant(group_ending_mode, word).
+:- pred group_ending_mode_to_constant(group_ending_mode, table_index).
 :- mode group_ending_mode_to_constant(in, out) is det.
 :- mode group_ending_mode_to_constant(out, in) is semidet.
 

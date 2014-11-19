@@ -1,25 +1,39 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
-% File: shift_reduce.m
+% File: egt.table.m
 % Copyright © 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
-% Created on: Thu Jul 10 16:11:22 CEST 2014
+% Created on: Wed Nov 19 22:16:40 CST 2014
 % Stability: low
 %----------------------------------------------------------------------------%
-% Top-level module of the shift-reduce parser library.
+% TODO: module documentation
 %----------------------------------------------------------------------------%
 
-:- module shift_reduce.
+:- module shift_reduce.egt.table.
 
 :- interface.
 
-:- include_module shift_reduce.egt.
-:- include_module shift_reduce.grmc.
-:- include_module shift_reduce.lexer.
+:- import_module array.
+:- import_module bitmap. % for type word
 
 %----------------------------------------------------------------------------%
 
+:- type table(T) == array(T).
+
+:- type table_index == word.
+
+:- func empty = table(T).
+
 %----------------------------------------------------------------------------%
-:- end_module shift_reduce.
+%----------------------------------------------------------------------------%
+
+:- implementation.
+
+%----------------------------------------------------------------------------%
+
+empty = make_empty_array.
+
+%----------------------------------------------------------------------------%
+:- end_module shift_reduce.egt.table.
 %----------------------------------------------------------------------------%

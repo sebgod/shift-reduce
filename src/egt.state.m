@@ -14,14 +14,15 @@
 
 :- interface.
 
-:- import_module bitmap.
+:- import_module shift_reduce.egt.entry.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
 :- type initial_states
     --->    initial_states(
-                init_dfa    :: word,  % initial DFA state (0)
-                linit_lalr  :: word   % initial LALR state (0)
+                init_dfa    :: table_index,  % initial DFA state (0)
+                linit_lalr  :: table_index   % initial LALR state (0)
             ).
 
 :- func parse_initial_states `with_type` parse_func(initial_states)

@@ -14,10 +14,11 @@
 
 :- interface.
 
-:- import_module bitmap.
+:- import_module bitmap. % for type byte
 :- import_module bool.
 :- import_module list.
-%:- import_module shift_reduce.egt.primitive.
+:- import_module shift_reduce.egt.primitive. % for type read_pred
+:- import_module shift_reduce.egt.table. % for type table_index
 
 %----------------------------------------------------------------------------%
 
@@ -25,12 +26,12 @@
     --->    reserved
     ;       bool(bool)
     ;       byte(byte)
-    ;       word(word)
+    ;       word(table_index)
     ;       string(string).
 
 :- type entries == list(entry).
 
-:- type parse_func(T) == (func(entries, word) = T).
+:- type parse_func(T) == (func(entries, table_index) = T).
 :- inst parse_func == (func(in, out) = out is det).
 
 :- pred read_entries(int::in, entries::out)

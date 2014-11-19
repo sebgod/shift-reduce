@@ -26,21 +26,7 @@
 :- include_module record.
 :- include_module state.
 :- include_module symbol.
-
-%----------------------------------------------------------------------------%
-
-:- import_module shift_reduce.egt.charset.
-:- import_module shift_reduce.egt.dfa.
-:- import_module shift_reduce.egt.entry.
-:- import_module shift_reduce.egt.grammar.
-:- import_module shift_reduce.egt.group.
-:- import_module shift_reduce.egt.lalr.
-:- import_module shift_reduce.egt.primitive.
-:- import_module shift_reduce.egt.production.
-:- import_module shift_reduce.egt.property.
-:- import_module shift_reduce.egt.record.
-:- import_module shift_reduce.egt.state.
-:- import_module shift_reduce.egt.symbol.
+:- include_module table.
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.egt.

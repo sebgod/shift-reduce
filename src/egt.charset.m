@@ -10,11 +10,12 @@
 % TODO: module documentation
 %----------------------------------------------------------------------------%
 
-:- module egt.charset.
+:- module shift_reduce.egt.charset.
 
 :- interface.
 
-:- import_module bitmap. % for type word
+:- import_module shift_reduce.egt.entry. % for type parse_func
+:- import_module shift_reduce.egt.table. % for type table_index
 
 %----------------------------------------------------------------------------%
 
@@ -22,8 +23,8 @@
 
 :- type charset
     --->    charset(
-                cs_unicode_plane    :: word,
-                cs_range_count      :: word,  % number of ranges
+                cs_unicode_plane    :: table_index,
+                cs_range_count      :: table_index,  % number of ranges
                 cs_ranges           :: chars
             ).
 
@@ -76,5 +77,5 @@ build_charset(!Charset) -->
     ).
 
 %----------------------------------------------------------------------------%
-:- end_module egt.charset.
+:- end_module shift_reduce.egt.charset.
 %----------------------------------------------------------------------------%

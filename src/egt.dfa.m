@@ -14,20 +14,21 @@
 
 :- interface.
 
-:- import_module bitmap. % for type word
 :- import_module maybe. % type maybe
+:- import_module shift_reduce.egt.entry. % for type parse_func
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
 :- type edge
     --->    edge(
-                edge_charset_index  :: word,
-                edge_target_index   :: word
+                edge_charset_index  :: table_index,
+                edge_target_index   :: table_index
             ).
 
 :- type dfa_state
     --->    dfa_state(
-                dfa_accept_index    :: maybe(word),
+                dfa_accept_index    :: maybe(table_index),
                 dfa_edges           :: table(edge)
             ).
 

@@ -14,7 +14,9 @@
 
 :- interface.
 
-:- import_module bitmap.
+:- import_module bitmap. % for type num_bytes
+:- import_module shift_reduce.egt.grammar.
+:- import_module shift_reduce.egt.primitive.
 
 %----------------------------------------------------------------------------%
 
@@ -32,6 +34,16 @@
 :- import_module list.
 :- import_module string. % for type poly_type
 :- import_module require.
+:- import_module shift_reduce.egt.charset.
+:- import_module shift_reduce.egt.dfa.
+:- import_module shift_reduce.egt.entry.
+:- import_module shift_reduce.egt.group.
+:- import_module shift_reduce.egt.lalr.
+:- import_module shift_reduce.egt.production.
+:- import_module shift_reduce.egt.property.
+:- import_module shift_reduce.egt.state.
+:- import_module shift_reduce.egt.symbol.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
@@ -106,12 +118,12 @@ build_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
 
 :- type table_counts
     --->    table_counts(
-                count_symbol    :: word,
-                count_charset   :: word,
-                count_rule      :: word,
-                count_dfa       :: word,
-                count_lalr      :: word,
-                count_group     :: word
+                count_symbol    :: table_index,
+                count_charset   :: table_index,
+                count_rule      :: table_index,
+                count_dfa       :: table_index,
+                count_lalr      :: table_index,
+                count_group     :: table_index
             ).
 
 :- func parse_table_counts `with_type` parse_func(table_counts)

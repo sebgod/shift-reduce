@@ -14,8 +14,9 @@
 
 :- interface.
 
-:- import_module bitmap. % for type word
 :- import_module enum.
+:- import_module shift_reduce.egt.entry.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
@@ -29,9 +30,9 @@
 
 :- type action
     --->    action(
-                action_symbol_index   :: word,
+                action_symbol_index   :: table_index,
                 action_kind           :: action_kind,
-                action_target_index   :: word
+                action_target_index   :: table_index
             ).
 
 :- type lalr_state
@@ -56,7 +57,7 @@
 
 %----------------------------------------------------------------------------%
 
-empty = lalr_state(make_empty_array).
+empty = lalr_state(empty).
 
 parse_lalr(Entries, Index) = LalrState :-
     ( Entries = [word(Index0), reserved | ActionEntries] ->
@@ -99,7 +100,7 @@ parse_lalr(Entries, Index) = LalrState :-
     (from_int(X) = Y :- action_kind_to_constant(Y, X))
 ].
 
-:- pred action_kind_to_constant(action_kind, word).
+:- pred action_kind_to_constant(action_kind, table_index).
 :- mode action_kind_to_constant(in, out) is det.
 :- mode action_kind_to_constant(out, in) is semidet.
 

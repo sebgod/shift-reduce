@@ -14,6 +14,8 @@
 
 :- interface.
 
+:- import_module shift_reduce.egt.entry.
+
 %----------------------------------------------------------------------------%
 
 :- type property

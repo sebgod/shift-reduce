@@ -14,14 +14,15 @@
 
 :- interface.
 
-:- import_module bitmap. % for type word
+:- import_module shift_reduce.egt.entry.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
 
 :- type production
     --->    production(
-                prod_head_index     :: word,
-                prod_symbols        :: table(word) % indicies to symbol table
+                prod_head_index     :: table_index,
+                prod_symbols        :: table(table_index)
             ).
 
 :- func empty = production.
@@ -34,18 +35,18 @@
 
 :- implementation.
 
-:- import_module array. % for make_empty_array
+:- use_module array.
 :- import_module list.
 :- import_module require.
 
 %----------------------------------------------------------------------------%
 
-empty = production(-1, make_empty_array).
+empty = production(-1, empty).
 
 parse_production(Entries, Index) = Rule :-
     ( Entries = [word(Index0), word(HeadIndex), reserved | SymbolEntries] ->
         Index = Index0,
-        generate_foldl(length(SymbolEntries),
+        array.generate_foldl(length(SymbolEntries),
             (pred(_Idx::in, SymbolIndex::out, in, out) is det -->
                 (
                     [word(SymbolIndex0)]

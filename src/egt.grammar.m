@@ -14,13 +14,19 @@
 
 :- interface.
 
-:- import_module array.
-:- import_module bitmap.
+:- import_module bitmap. % for inst bitmap_{di|uo}
 :- import_module io.
+:- import_module shift_reduce.egt.charset.
+:- import_module shift_reduce.egt.dfa.
+:- import_module shift_reduce.egt.group.
+:- import_module shift_reduce.egt.lalr.
+:- import_module shift_reduce.egt.production.
+:- import_module shift_reduce.egt.property.
+:- import_module shift_reduce.egt.state.
+:- import_module shift_reduce.egt.symbol.
+:- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
-
-:- type table(T) == array(T).
 
 :- type grammar_info
     --->    grammar_info(
@@ -50,8 +56,12 @@
 
 :- implementation.
 
+:- use_module array. % TODO: wrap array.init/1 in table module
 :- import_module require.
 :- import_module string. % for ++/2
+:- import_module shift_reduce.egt.primitive.
+:- import_module shift_reduce.egt.table.
+:- import_module shift_reduce.egt.record.
 
 %----------------------------------------------------------------------------%
 
@@ -86,10 +96,10 @@ parse_grammar(Grammar, !Index, !Bitmap) :-
     Info = grammar_info(Header),
     ( NumBytes = num_bytes(!.Bitmap) ->
         Grammar0 = grammar(Info, initial_states(-1, -1),
-            make_empty_array, make_empty_array, make_empty_array,
-            make_empty_array, make_empty_array, make_empty_array,
+            empty, empty, empty,
+            empty, empty, empty,
             % Size of property table fixed since no entry in table count
-            init(8, empty)),
+            array.init(8, empty)),
         build_tables(NumBytes, Grammar0, Grammar, !Index, !Bitmap)
     ;
         unexpected($file, $pred, "Bitmap is not initialised!")

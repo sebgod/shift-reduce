@@ -29,6 +29,7 @@
 :- import_module shift_reduce.egt.
 :- import_module shift_reduce.egt.grammar.
 :- import_module shift_reduce.grmc.
+:- import_module shift_reduce.lexer.
 :- import_module dir.
 :- import_module list.
 :- import_module require.
@@ -38,14 +39,18 @@
 
 :- use_module stream.
 
-:- pred lex(text_input_stream::in, io::di, io::uo) is det.
+:- pred lex(lexer::in, lexer_io::di, lexer_io::uo) is det.
 
-lex(Reader, !IO) :-
-    stream.get(Reader, Result, !IO),
-    ( if Result = stream.ok(Char) then
-        io.format("%c", [c(Char)], !IO)
+lex(Lexer, !LexerIO) :-
+    stream.get(Lexer, Result, !LexerIO),
+    ( if Result = stream.ok(token(Index, Chars)) then
+        true,
+        trace [io(!TraceIO)] (
+            io.format("(%d, %s)\n",
+                [i(Index), s(from_char_list(Chars))], !TraceIO)
+        )
     else if Result = stream.error(Error) then
-        io.format("error: %s", [s(io.error_message(Error))], !IO)
+        error(io.error_message(Error))
     else if Result = stream.eof then
         true
     else
@@ -62,7 +67,8 @@ main(!IO) :-
     from_file(EgtFile, Grammar, !IO),
     open_input(ProgDir / "ParserTest.txt", OpenResult, !IO),
     ( if OpenResult = ok(InputStream) then
-        lex(InputStream, !IO),
+        Lexer = lexer(InputStream, Grammar),
+        lex(Lexer, lexer_io(!.IO), lexer_io(!:IO)),
         close_input(InputStream, !IO)
     else if OpenResult = error(OpenError) then
         unexpected($file, $pred, error_message(OpenError))
