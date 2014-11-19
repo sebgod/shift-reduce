@@ -33,7 +33,6 @@
 :- import_module dir.
 :- import_module list.
 :- import_module require.
-:- import_module string.
 
 %----------------------------------------------------------------------------%
 
@@ -41,7 +40,8 @@ main(!IO) :-
     progdir(ProgDir, !IO),
     compile(
         ProgDir / ".." / "tools",
-        ProgDir / "ParserTest.grm", EgtFile,
+        ProgDir / "ParserTest.grm",
+        EgtFile,
         [force_recompile],
         !IO),
     from_file(EgtFile, Grammar, !IO),
@@ -51,7 +51,7 @@ main(!IO) :-
         lex(Lexer, lexer_io(!.IO), lexer_io(!:IO)),
         close_input(InputStream, !IO)
     else if OpenResult = error(OpenError) then
-        unexpected($file, $pred, error_message(OpenError))
+        error(error_message(OpenError))
     else
         unexpected($file, $pred, "unknown `io.res(T)' value")
     ).

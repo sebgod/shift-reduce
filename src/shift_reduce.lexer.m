@@ -76,6 +76,7 @@ lex(Lexer, !LexerIO) :-
     ).
 
 %----------------------------------------------------------------------------%
+
 :- instance stream(lexer, lexer_io) where [
     pred(name/4) is lexer_name
 ].
@@ -96,8 +97,6 @@ lexer_name(Lexer, Name, lexer_io(!.IO), lexer_io(!:IO)) :-
 
 read_token(Lexer, Result, !LexerIO) :-
     Result = ok(token(-1, [])).
-
-
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.lexer.
