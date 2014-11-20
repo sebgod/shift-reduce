@@ -20,6 +20,7 @@
 :- import_module io.
 :- import_module shift_reduce.egt.
 :- import_module shift_reduce.egt.grammar.
+:- import_module shift_reduce.egt.state.
 :- import_module shift_reduce.egt.table.
 
 %----------------------------------------------------------------------------%
@@ -32,7 +33,8 @@
 
 :- type lexer_io
     --->    lexer_io(
-                lexer_io :: io
+                lio_io      :: io,
+                lio_state   :: lexer_state
             ).
 
 :- type token
@@ -54,8 +56,12 @@
 
 :- implementation.
 
+:- import_module array. % for size/1
 :- import_module require.
 :- import_module string.
+:- import_module shift_reduce.egt.charset.
+:- import_module shift_reduce.egt.state.
+:- import_module int.
 
 %----------------------------------------------------------------------------%
 
@@ -83,7 +89,8 @@ lex(Lexer, !LexerIO) :-
 
 :- pred lexer_name(lexer::in, name::out, lexer_io::di, lexer_io::uo).
 
-lexer_name(Lexer, Name, lexer_io(!.IO), lexer_io(!:IO)) :-
+lexer_name(Lexer, Name,
+    lexer_io(!.IO, States), lexer_io(!:IO, make_unique(States))) :-
     name(Lexer ^ lexer_input_stream, Name, !IO).
 
 :- instance input(lexer, lexer_io) where [].
@@ -96,7 +103,21 @@ lexer_name(Lexer, Name, lexer_io(!.IO), lexer_io(!:IO)) :-
     lexer_io::di, lexer_io::uo).
 
 read_token(Lexer, Result, !LexerIO) :-
-    Result = ok(token(-1, [])).
+    Grammar = Lexer ^ lexer_grammar,
+    LexerState = !.LexerIO ^ lio_state,
+    Charsets = Grammar ^ charsets,
+    ( if is_in_charsets('A', Match, Charsets, 0, Charsets ^ size) then
+        Result = ok(token(-1, []))
+    else
+        unexpected($file, $pred, "cannot find token in charset")
+    ).
+
+:- pred is_in_charsets(char::in, charset::out, table(charset)::in,
+    table_index::in, table_index::in) is semidet.
+
+is_in_charsets(Char, Match, Chars, Lower, Upper) :-
+    Match = empty,
+    semidet_fail.
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.lexer.

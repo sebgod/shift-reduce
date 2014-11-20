@@ -19,13 +19,18 @@
 
 %----------------------------------------------------------------------------%
 
-:- type initial_states
-    --->    initial_states(
-                init_dfa    :: table_index,  % initial DFA state (0)
-                linit_lalr  :: table_index   % initial LALR state (0)
+:- type lexer_state
+    --->    lexer_state(
+                dfa     :: table_index,  % initial DFA state  (usually 0)
+                lalr    :: table_index   % initial LALR state (usually 0)
             ).
 
-:- func parse_initial_states `with_type` parse_func(initial_states)
+:- func empty = lexer_state.
+
+:- func make_unique(lexer_state) = lexer_state.
+:- mode make_unique(in) = uo is det.
+
+:- func parse_initial_lexer_state `with_type` parse_func(lexer_state)
     `with_inst` parse_func.
 
 %----------------------------------------------------------------------------%
@@ -33,16 +38,21 @@
 
 :- implementation.
 
+:- import_module int.
 :- import_module list.
 :- import_module require.
 
 %----------------------------------------------------------------------------%
 
-parse_initial_states(Entries, -1) =
-    ( Entries = [word(Dfa), word(Lalr)] ->
-        initial_states(Dfa, Lalr)
-    ;
-        unexpected($file, $pred, "invalid initial states record")
+empty = lexer_state(-1, -1).
+
+make_unique(lexer_state(Dfa, Lalr)) = lexer_state(Dfa + 0, Lalr + 0).
+
+parse_initial_lexer_state(Entries, -1) =
+    ( if Entries = [word(Dfa), word(Lalr)] then
+        lexer_state(Dfa, Lalr)
+    else
+        unexpected($file, $pred, "invalid initial lexer_state record")
     ).
 
 %----------------------------------------------------------------------------%

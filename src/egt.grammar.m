@@ -36,7 +36,7 @@
 :- type grammar
     --->    grammar(
                 grammar_info    :: grammar_info,  % Meta-Information
-                initial_states  :: initial_states,
+                initial_state   :: lexer_state,
                 charsets        :: table(charset),
                 dfa_states      :: table(dfa_state),
                 groups          :: table(group),
@@ -95,8 +95,7 @@ parse_grammar(Grammar, !Index, !Bitmap) :-
     read_string(Header, !Index, !Bitmap),
     Info = grammar_info(Header),
     ( NumBytes = num_bytes(!.Bitmap) ->
-        Grammar0 = grammar(Info, initial_states(-1, -1),
-            empty, empty, empty,
+        Grammar0 = grammar(Info, empty, empty, empty, empty,
             empty, empty, empty,
             % Size of property table fixed since no entry in table count
             array.init(8, empty)),

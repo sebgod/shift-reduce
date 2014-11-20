@@ -67,8 +67,8 @@ build_tables(NumBytes, !Grammar, !Index, !Bitmap) :-
                     !:Grammar = !.Grammar ^ groups ^ elem(GroupIndex) :=
                         parse_group(Entries, GroupIndex)
                 ; Spec = 'I' ->
-                    !:Grammar = !.Grammar ^ initial_states :=
-                        parse_initial_states(Entries, _)
+                    !:Grammar = !.Grammar ^ initial_state :=
+                        parse_initial_lexer_state(Entries, _)
                 ; Spec = 'L' ->
                     !:Grammar = !.Grammar ^ lalr_states ^ elem(LalrIndex) :=
                         parse_lalr(Entries, LalrIndex)

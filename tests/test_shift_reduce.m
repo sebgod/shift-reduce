@@ -28,6 +28,7 @@
 :- import_module shift_reduce.
 :- import_module shift_reduce.egt.
 :- import_module shift_reduce.egt.grammar.
+:- import_module shift_reduce.egt.state.
 :- import_module shift_reduce.grmc.
 :- import_module shift_reduce.lexer.
 :- import_module dir.
@@ -48,7 +49,8 @@ main(!IO) :-
     open_input(ProgDir / "ParserTest.txt", OpenResult, !IO),
     ( if OpenResult = ok(InputStream) then
         Lexer = lexer(InputStream, Grammar),
-        lex(Lexer, lexer_io(!.IO), lexer_io(!:IO)),
+        InitialState = make_unique(Grammar ^ initial_state),
+        lex(Lexer, lexer_io(!.IO, InitialState), lexer_io(!:IO, _)),
         close_input(InputStream, !IO)
     else if OpenResult = error(OpenError) then
         error(error_message(OpenError))

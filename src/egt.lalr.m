@@ -49,7 +49,7 @@
 
 :- implementation.
 
-:- import_module array. % for generate_fold/5, make_empty_array
+:- import_module array. % for generate_fold/5
 :- import_module enum. % for from_int/1
 :- import_module int. % for (//)/2
 :- import_module list.
