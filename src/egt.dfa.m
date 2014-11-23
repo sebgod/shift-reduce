@@ -41,7 +41,7 @@
 
 :- implementation.
 
-:- import_module array. % for generate_fold/5, make_empty_array
+:- import_module array. % for generate_fold/5
 :- import_module bool. % type bool used in parse_dfa/2
 :- import_module int.
 :- import_module list.
@@ -49,7 +49,7 @@
 
 %----------------------------------------------------------------------------%
 
-empty = dfa_state(no, make_empty_array).
+empty = dfa_state(no, empty).
 
 parse_dfa(Entries, Index) = DfaState :-
     ( Entries = [word(Index0), bool(AcceptState), word(AcceptIndex),
