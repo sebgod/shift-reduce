@@ -1,5 +1,5 @@
 %----------------------------------------------------------------------------%
-% vim: ft=mercury ff=unix ts=4 sw=4 et
+% vim: ft=mercury ff=unix ts=4 sw=4 tw=78 et
 %----------------------------------------------------------------------------%
 % File: test_shift_reduce.m
 % Copyright © 2014 Sebastian Godelet
