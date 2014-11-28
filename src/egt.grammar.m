@@ -67,22 +67,22 @@
 
 from_file(EgtFile, Grammar, !IO) :-
     io.open_binary_input(EgtFile, OpenResult, !IO),
-    ( OpenResult = ok(FileInput) ->
+    (
+        OpenResult = ok(FileInput),
         read_binary_file_as_bitmap(FileInput, BitmapResult, !IO),
-        ( BitmapResult = ok(Bitmap) ->
+        (
+            BitmapResult = ok(Bitmap),
             from_bitmap(Grammar, Bitmap, _)
-        ; BitmapResult = error(BitmapError) ->
+        ;
+            BitmapResult = error(BitmapError),
             unexpected($file, $pred, "error reading bitmap" ++
                 io.error_message(BitmapError))
-        ;
-            unexpected($file, $pred, "unknown bitmap error type")
         ),
         io.close_binary_input(FileInput, !IO)
-    ; OpenResult = error(FileOpenError) ->
+    ;
+        OpenResult = error(FileOpenError),
         unexpected($file, $pred, "cannot open " ++ EgtFile ++
             ": " ++ io.error_message(FileOpenError))
-    ;
-        unexpected($file, $pred, "unknown binary input result type")
     ).
 
 from_bitmap(Grammar, !Bitmap) :-

@@ -82,16 +82,16 @@ compile(BaseDir, GrammarFile, EgtFile, Flags, !IO) :-
         unexpected($file, $pred, format("compile [%s] failed: " ++ Fmt,
                     [s(CompileCmd)] ++ Args))),
     io.call_system(CompileCmd, CompileResult, !IO),
-    ( CompileResult = ok(ExitCode) ->
+    (
+        CompileResult = ok(ExitCode),
         ( ExitCode \= 0 ->
             FailMsg("error code: %d", [i(ExitCode)])
         ;
             true
         )
-    ; CompileResult = error(CompileError) ->
-        FailMsg("io: %s", [s(io.error_message(CompileError))])
     ;
-        FailMsg("unknown io.call_system/4 result", [])
+        CompileResult = error(CompileError),
+        FailMsg("io: %s", [s(io.error_message(CompileError))])
     ).
 
 %----------------------------------------------------------------------------%

@@ -47,15 +47,15 @@ main(!IO) :-
         !IO),
     from_file(EgtFile, Grammar, !IO),
     open_input(ProgDir / "ParserTest.txt", OpenResult, !IO),
-    ( if OpenResult = ok(InputStream) then
+    (
+        OpenResult = ok(InputStream),
         Lexer = lexer(InputStream, Grammar),
         InitialState = make_unique(Grammar ^ initial_state),
         lex(Lexer, lexer_io(!.IO, InitialState), lexer_io(!:IO, _)),
         close_input(InputStream, !IO)
-    else if OpenResult = error(OpenError) then
+    ;
+        OpenResult = error(OpenError),
         error(error_message(OpenError))
-    else
-        unexpected($file, $pred, "unknown `io.res(T)' value")
     ).
 
 %----------------------------------------------------------------------------%
