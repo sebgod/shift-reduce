@@ -130,7 +130,9 @@ is_in_charsets(Char, Match, Chars, Index, Size) :-
         trace [io(!IO)] (
             io.write_char(Char, !IO),
             io.write_string(" is in ", !IO),
-            io.write_line(Match, !IO)
+            io.write_int(Match, !IO),
+            io.write_string(" set: ", !IO),
+            io.write(Charset, !IO)
         )
       else
         is_in_charsets(Char, Match, Chars, Index+1, Size)
