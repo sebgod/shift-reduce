@@ -51,7 +51,7 @@ make_unique(lexer_state(Dfa, Lalr)) = lexer_state(Dfa + 0, Lalr + 0).
 parse_initial_lexer_state(Entries, -1) =
     ( if Entries = [word(Dfa), word(Lalr)] then
         lexer_state(Dfa, Lalr)
-    else
+      else
         unexpected($file, $pred, "invalid initial lexer_state record")
     ).
 

@@ -49,15 +49,15 @@
 empty = charset(-1, -1, init).
 
 parse_charset(Entries, Index) = Charset :-
-    (
+    ( if
         Entries = [word(Index0), word(UnicodePlane),
                    word(RangeCount), reserved | RangeEntries]
-    ->
+      then
         Index = Index0,
         build_charset(init, Ranges, RangeEntries, RangeRest),
         expect(is_empty(RangeRest), $file, $pred, "still have range entries"),
         Charset = charset(UnicodePlane, RangeCount, Ranges)
-    ;
+      else
         unexpected($file, $pred, "invalid character set record")
     ).
 
@@ -70,9 +70,9 @@ build_charset(!Charset) -->
             insert_list(Chars, !Charset)
         },
         build_charset(!Charset)
-    else if [_] then
+      else if [_] then
         { unexpected($file, $pred, "premature end of range list") }
-    else
+      else
         { true }
     ).
 

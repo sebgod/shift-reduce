@@ -60,7 +60,7 @@
 empty = lalr_state(empty).
 
 parse_lalr(Entries, Index) = LalrState :-
-    ( Entries = [word(Index0), reserved | ActionEntries] ->
+    ( if Entries = [word(Index0), reserved | ActionEntries] then
         Index = Index0,
         generate_foldl(length(ActionEntries) // 4,
             (pred(_Idx::in,
@@ -73,7 +73,7 @@ parse_lalr(Entries, Index) = LalrState :-
                     { SymbolIndex = SymbolIndex0,
                       ( if ActionKind0 = from_int(ActionConstant) then
                           ActionKind = ActionKind0
-                      else
+                        else
                           unexpected($file, $pred, "unknown action kind")
                       ),
                       TargetIndex  = TargetIndex0 }
@@ -89,7 +89,7 @@ parse_lalr(Entries, Index) = LalrState :-
         expect(is_empty(ActionRest), $file, $pred,
             "still have action entries"),
         LalrState = lalr_state(Actions)
-    ;
+      else
         unexpected($file, $pred, "invalid LALR state record")
     ).
 

@@ -107,7 +107,7 @@ read_token(Lexer, Result, !LexerIO) :-
     Charsets = Grammar ^ charsets,
     ( if is_in_charsets('A', Match, Charsets, 0, Charsets ^ size) then
         Result = ok(token(-1, []))
-    else
+      else
         unexpected($file, $pred, "cannot find token in charset")
     ).
 
