@@ -14,21 +14,17 @@
 
 :- interface.
 
+:- import_module char. % for det_from_int/1, type char.
+
 :- import_module shift_reduce.egt.entry. % for type parse_func
-:- import_module shift_reduce.egt.table. % for type table_index
 
 %----------------------------------------------------------------------------%
 
-:- type chars.
-
-:- type charset
-    --->    charset(
-                cs_unicode_plane    :: table_index,
-                cs_range_count      :: table_index,  % number of ranges
-                cs_ranges           :: chars
-            ).
+:- type charset.
 
 :- func empty = charset.
+
+:- pred is_in_charset(char::in, charset::in) is semidet.
 
 :- func parse_charset `with_type` parse_func(charset) `with_inst` parse_func.
 
@@ -37,39 +33,48 @@
 
 :- implementation.
 
-:- import_module char. % for det_from_int/1
+:- import_module int. % for <</2
 :- import_module list.
 :- import_module sparse_bitset.
 :- import_module require.
 
 %----------------------------------------------------------------------------%
 
-:- type chars == sparse_bitset(char).
+:- type charset == sparse_bitset(char).
 
-empty = charset(-1, -1, init).
+empty = init.
 
 parse_charset(Entries, Index) = Charset :-
     ( if
         Entries = [word(Index0), word(UnicodePlane),
                    word(RangeCount), reserved | RangeEntries]
       then
+        ( if length(RangeEntries) = RangeCount * 2 then
+            true
+          else
+            unexpected($file, $pred, "range entry length mismatch")
+        ),
         Index = Index0,
-        build_charset(init, Ranges, RangeEntries, RangeRest),
-        expect(is_empty(RangeRest), $file, $pred, "still have range entries"),
-        Charset = charset(UnicodePlane, RangeCount, Ranges)
+        Offset = UnicodePlane << 6,
+        build_charsets(Offset, empty, Charset, RangeEntries, RangeRest),
+        expect(is_empty(RangeRest), $file, $pred, "still have range entries")
       else
         unexpected($file, $pred, "invalid character set record")
     ).
 
-:- pred build_charset(chars::in, chars::out, entries::in, entries::out).
+is_in_charset(Char, Charset) :- member(Char, Charset).
 
-build_charset(!Charset) -->
+:- pred build_charsets(int::in, charset::in, charset::out,
+                       entries::in, entries::out).
+
+build_charsets(Offset, !Charset) -->
     ( if [word(StartUnit), word(EndUnit)] then
         {
-            Chars = map(det_from_int, StartUnit `..` EndUnit),
+            CharCodeRange = (Offset + StartUnit) `..` (Offset + EndUnit),
+            Chars = map(det_from_int, CharCodeRange),
             insert_list(Chars, !Charset)
         },
-        build_charset(!Charset)
+        build_charsets(Offset, !Charset)
       else if [_] then
         { unexpected($file, $pred, "premature end of range list") }
       else

@@ -105,18 +105,36 @@ read_token(Lexer, Result, !LexerIO) :-
     Grammar = Lexer ^ lexer_grammar,
     LexerState = !.LexerIO ^ lio_state,
     Charsets = Grammar ^ charsets,
-    ( if is_in_charsets('A', Match, Charsets, 0, Charsets ^ size) then
+    ( if
+        is_in_charsets('0', _Match0, Charsets, 0, Charsets ^ size),
+        is_in_charsets('A', _Match1, Charsets, 0, Charsets ^ size),
+        is_in_charsets(' ', _Match2, Charsets, 0, Charsets ^ size),
+        is_in_charsets('\n', _Match3, Charsets, 0, Charsets ^ size),
+        is_in_charsets('\t', _Match4, Charsets, 0, Charsets ^ size)
+      then
         Result = ok(token(-1, []))
       else
         unexpected($file, $pred, "cannot find token in charset")
     ).
 
-:- pred is_in_charsets(char::in, charset::out, table(charset)::in,
+:- pred is_in_charsets(char::in, table_index::out, table(charset)::in,
     table_index::in, table_index::in) is semidet.
 
-is_in_charsets(Char, Match, Chars, Lower, Upper) :-
-    Match = empty,
-    semidet_fail.
+is_in_charsets(Char, Match, Chars, Index, Size) :-
+    Index < Size,
+    ( if
+        Charset = Chars ^ unsafe_elem(Index),
+        is_in_charset(Char, Charset)
+      then
+        Match = Index,
+        trace [io(!IO)] (
+            io.write_char(Char, !IO),
+            io.write_string(" is in ", !IO),
+            io.write_line(Match, !IO)
+        )
+      else
+        is_in_charsets(Char, Match, Chars, Index+1, Size)
+    ).
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.lexer.
