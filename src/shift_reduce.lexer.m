@@ -106,24 +106,30 @@ read_token(Lexer, Result, !LexerIO) :-
     LexerState = !.LexerIO ^ lio_state,
     Charsets = Grammar ^ charsets,
     ( if
-        is_in_charsets('0', _Match0, Charsets, 0, Charsets ^ size),
-        is_in_charsets('A', _Match1, Charsets, 0, Charsets ^ size),
-        is_in_charsets(' ', _Match2, Charsets, 0, Charsets ^ size),
-        is_in_charsets('\n', _Match3, Charsets, 0, Charsets ^ size),
-        is_in_charsets('\t', _Match4, Charsets, 0, Charsets ^ size)
+        is_in_charsets('9', Charsets, _),
+        is_in_charsets('A', Charsets, _),
+        is_in_charsets(' ', Charsets, _)
       then
         Result = ok(token(-1, []))
       else
         unexpected($file, $pred, "cannot find token in charset")
     ).
 
-:- pred is_in_charsets(char::in, table_index::out, table(charset)::in,
-    table_index::in, table_index::in) is semidet.
+:- pragma memo(is_in_charsets/3).
 
-is_in_charsets(Char, Match, Chars, Index, Size) :-
+:- pred is_in_charsets(char::in, table(charset)::in,
+    table_index::out) is semidet.
+
+is_in_charsets(Char, Charsets, Match) :-
+    is_in_charsets(Char, Charsets, 0, Charsets ^ size, Match).
+
+:- pred is_in_charsets(char::in, table(charset)::in,
+    table_index::in, table_index::in, table_index::out) is semidet.
+
+is_in_charsets(Char, Charsets, Index, Size, Match) :-
     Index < Size,
     ( if
-        Charset = Chars ^ unsafe_elem(Index),
+        Charset = Charsets ^ unsafe_elem(Index),
         is_in_charset(Char, Charset)
       then
         Match = Index,
@@ -131,11 +137,10 @@ is_in_charsets(Char, Match, Chars, Index, Size) :-
             io.write_char(Char, !IO),
             io.write_string(" is in ", !IO),
             io.write_int(Match, !IO),
-            io.write_string(" set: ", !IO),
-            io.write(Charset, !IO)
+            io.nl(!IO)
         )
       else
-        is_in_charsets(Char, Match, Chars, Index+1, Size)
+        is_in_charsets(Char, Charsets, Index+1, Size, Match)
     ).
 
 %----------------------------------------------------------------------------%

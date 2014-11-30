@@ -24,8 +24,6 @@
 
 :- func empty = charset.
 
-:- func compare(char, charset) = comparison_result.
-
 :- pred is_in_charset(char::in, charset::in) is semidet.
 
 :- func parse_charset `with_type` parse_func(charset) `with_inst` parse_func.
@@ -42,13 +40,9 @@
 
 %----------------------------------------------------------------------------%
 
-:- type charset
-    ---> charset(
-            cs_first::int, % should be char, but min/2 works only for ints
-            cs_chars::sparse_bitset(char)
-    ).
+:- type charset == sparse_bitset(char).
 
-empty = charset(max_char_value, init).
+empty = init.
 
 parse_charset(Entries, Index) = Charset :-
     ( if
@@ -66,16 +60,7 @@ parse_charset(Entries, Index) = Charset :-
         unexpected($file, $pred, "invalid character set record")
     ).
 
-is_in_charset(Char, Charset) :- member(Char, Charset^cs_chars).
-
-compare(Char, Charset) =
-    ( if is_in_charset(Char, Charset) then
-        (=)
-      else if to_int(Char) < Charset^cs_first then
-        (<)
-      else
-        (>)
-    ).
+is_in_charset(Char, Charset) :- member(Char, Charset).
 
 :- pred build_charsets(int::in, charset::in, charset::out,
                        entries::in, entries::out).
@@ -85,7 +70,7 @@ build_charsets(Offset, !Charset) -->
         {
             CharCodeRange = (Offset + StartUnit) `..` (Offset + EndUnit),
             CharList = map(det_from_int, CharCodeRange),
-            insert_chars(CharList, !Charset)
+            insert_list(CharList, !Charset)
         },
         build_charsets(Offset, !Charset)
       else if [_] then
@@ -93,12 +78,6 @@ build_charsets(Offset, !Charset) -->
       else
         { true }
     ).
-
-:- pred insert_chars(list(char)::in, charset::in, charset::out) is det.
-
-insert_chars(CharList, charset(First0, Chars0), charset(First, Chars)) :-
-    insert_list(CharList, Chars0, Chars),
-    First = min(to_int(det_index0(CharList, 0)), First0).
 
 %----------------------------------------------------------------------------%
 :- end_module shift_reduce.egt.charset.
