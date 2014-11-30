@@ -28,14 +28,8 @@
 
 %----------------------------------------------------------------------------%
 
-:- type grammar_info
-    --->    grammar_info(
-                info_header :: string   % EGT File Header
-            ).
-
 :- type grammar
     --->    grammar(
-                grammar_info    :: grammar_info,  % Meta-Information
                 initial_state   :: lexer_state,
                 charsets        :: table(charset),
                 dfa_states      :: table(dfa_state),
@@ -45,6 +39,8 @@
                 productions     :: table(production),
                 properties      :: table(property)
             ).
+
+:- func empty = grammar.
 
 :- pred from_file(string::in, grammar::out, io::di, io::uo) is det.
 
@@ -64,6 +60,10 @@
 :- import_module shift_reduce.egt.record.
 
 %----------------------------------------------------------------------------%
+
+empty = grammar(empty, empty, empty, empty, empty, empty, empty,
+            % Size of property table fixed since no entry in table count
+            array.init(8, empty)).
 
 from_file(EgtFile, Grammar, !IO) :-
     io.open_binary_input(EgtFile, OpenResult, !IO),
@@ -92,15 +92,14 @@ from_bitmap(Grammar, !Bitmap) :-
     `with_type` read_pred `with_inst` read_pred.
 
 parse_grammar(Grammar, !Index, !Bitmap) :-
-    read_string(Header, !Index, !Bitmap),
-    Info = grammar_info(Header),
-    ( NumBytes = num_bytes(!.Bitmap) ->
-        Grammar0 = grammar(Info, empty, empty, empty, empty,
-            empty, empty, empty,
-            % Size of property table fixed since no entry in table count
-            array.init(8, empty)),
-        build_tables(NumBytes, Grammar0, Grammar, !Index, !Bitmap)
-    ;
+    ( if NumBytes = num_bytes(!.Bitmap) then
+        read_string(Header, !Index, !Bitmap),
+        ( if Header = "GOLD Parser Tables/v5.0" then
+            build_tables(NumBytes, empty, Grammar, !Index, !Bitmap)
+          else
+            sorry($file, $pred, Header)
+        )
+      else
         unexpected($file, $pred, "Bitmap is not initialised!")
     ).
 
