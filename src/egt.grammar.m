@@ -96,10 +96,10 @@ parse_grammar(Grammar, !Index, !Bitmap) :-
         read_string(Header, !Index, !Bitmap),
         ( if Header = "GOLD Parser Tables/v5.0" then
             build_tables(NumBytes, empty, Grammar, !Index, !Bitmap)
-          else
+        else
             sorry($file, $pred, Header)
         )
-      else
+    else
         unexpected($file, $pred, "Bitmap is not initialised!")
     ).
 

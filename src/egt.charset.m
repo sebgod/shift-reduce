@@ -51,12 +51,12 @@ parse_charset(Entries, Index) = Charset :-
         % security measures for build_charsets/5 ranges
         length(RangeEntries) = RangeCount * 2,
         0 =< UnicodePlane, UnicodePlane =< 0xff
-      then
+    then
         Index = Index0,
         Offset = UnicodePlane << 6, % 0xPPhhhhhh
         build_charsets(Offset, empty, Charset, RangeEntries, RangeRest),
         expect(is_empty(RangeRest), $file, $pred, "still have range entries")
-      else
+    else
         unexpected($file, $pred, "invalid character set record")
     ).
 
@@ -73,9 +73,9 @@ build_charsets(Offset, !Charset) -->
             insert_list(CharList, !Charset)
         },
         build_charsets(Offset, !Charset)
-      else if [_] then
+    else if [_] then
         { unexpected($file, $pred, "premature end of range list") }
-      else
+    else
         { true }
     ).
 

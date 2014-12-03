@@ -109,9 +109,9 @@ read_token(Lexer, Result, !LexerIO) :-
         is_in_charsets('9', Charsets, _),
         is_in_charsets('A', Charsets, _),
         is_in_charsets(' ', Charsets, _)
-      then
+    then
         Result = ok(token(-1, []))
-      else
+    else
         unexpected($file, $pred, "cannot find token in charset")
     ).
 
@@ -127,11 +127,11 @@ is_in_charsets(Char, Charsets, Match) :-
     table_index::in, table_index::in, table_index::out) is semidet.
 
 is_in_charsets(Char, Charsets, Index, Size, Match) :-
-    Index < Size,
+    Index < S ize,
     ( if
         Charset = Charsets ^ unsafe_elem(Index),
         is_in_charset(Char, Charset)
-      then
+    then
         Match = Index,
         trace [io(!IO)] (
             io.write_char(Char, !IO),
@@ -139,7 +139,7 @@ is_in_charsets(Char, Charsets, Index, Size, Match) :-
             io.write_int(Match, !IO),
             io.nl(!IO)
         )
-      else
+    else
         is_in_charsets(Char, Charsets, Index+1, Size, Match)
     ).
 
