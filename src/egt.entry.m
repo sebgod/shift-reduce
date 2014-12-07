@@ -49,13 +49,13 @@
 %----------------------------------------------------------------------------%
 
 read_entries(Count, Entries, !Index, !Bitmap) :-
-    read_entries(Count, [], RevEntries, !Index, !Bitmap),
+    read_entries_acc(Count, [], RevEntries, !Index, !Bitmap),
     reverse(RevEntries, Entries).
 
-:- pred read_entries(int::in, entries::in, entries::out)
+:- pred read_entries_acc(int::in, entries::in, entries::out)
     `with_type` read_pred `with_inst` read_pred.
 
-read_entries(Count, !Entries, !Index, !Bitmap) :-
+read_entries_acc(Count, !Entries, !Index, !Bitmap) :-
     ( Count > 0 ->
         read_ascii(Type, !Index, !Bitmap),
         ( Type = 'E' ->
@@ -77,7 +77,7 @@ read_entries(Count, !Entries, !Index, !Bitmap) :-
                 format("entry type <%c> not implemented!", [c(Type)]))
         ),
         !:Entries = [Entry | !.Entries],
-        read_entries(Count - 1, !Entries, !Index, !Bitmap)
+        read_entries_acc(Count - 1, !Entries, !Index, !Bitmap)
     ;
         true
     ).

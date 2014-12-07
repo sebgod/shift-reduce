@@ -127,7 +127,7 @@ is_in_charsets(Char, Charsets, Match) :-
     table_index::in, table_index::in, table_index::out) is semidet.
 
 is_in_charsets(Char, Charsets, Index, Size, Match) :-
-    Index < S ize,
+    Index < Size,
     ( if
         Charset = Charsets ^ unsafe_elem(Index),
         is_in_charset(Char, Charset)

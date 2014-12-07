@@ -71,7 +71,7 @@ read_word(Word, !Index, !Bitmap) :-
     Word = (High << 8) \/ Low.
 
 read_string(String, !Index, !Bitmap) :-
-    read_chars([], RevUtf16CodeUnits, !Index, !Bitmap),
+    read_chars_acc([], RevUtf16CodeUnits, !Index, !Bitmap),
     reverse(RevUtf16CodeUnits, Utf16CodeUnits),
     native_code_units_from_unicode(utf16, Utf16CodeUnits, NativeCodeUnits),
     ( from_code_unit_list(NativeCodeUnits, String0) ->
@@ -80,16 +80,16 @@ read_string(String, !Index, !Bitmap) :-
         unexpected($file, $pred, "The string is invalid UTF16-z")
     ).
 
-:- pred read_chars(list(int)::in, list(int)::out)
+:- pred read_chars_acc(list(int)::in, list(int)::out)
     `with_type` read_pred `with_inst` read_pred.
 
-read_chars(!Chars, !Index, !Bitmap) :-
+read_chars_acc(!Chars, !Index, !Bitmap) :-
     read_word(Utf16CodeUnit, !Index, !Bitmap),
     ( Utf16CodeUnit = 0 ->
         true
     ;
         !:Chars = [Utf16CodeUnit | !.Chars],
-        read_chars(!Chars, !Index, !Bitmap)
+        read_chars_acc(!Chars, !Index, !Bitmap)
     ).
 
 %----------------------------------------------------------------------------%
