@@ -128,12 +128,12 @@ utf16_to_utf8_2([]) --> [].
 utf16_to_utf8_2([Utf16CodeUnit | Utf16CodeUnits]) -->
     { det_from_int(Utf16CodeUnit, Char) },
     (
-        { is_lead_surrogate(Char) }
+        { is_leading_surrogate(Char) }
     ->
         (
             { Utf16CodeUnits = [TrailCodeUnit | Utf16CodeUnitsNoTrail],
             from_int(TrailCodeUnit, Trail),
-            is_trail_surrogate(Trail) }
+            is_trailing_surrogate(Trail) }
         ->
             { det_from_int((TrailCodeUnit - 0xd800) * 0x400 +
                 Utf16CodeUnit - 0xdc00 + 0x10000, Combined) },
