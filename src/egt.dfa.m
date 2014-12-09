@@ -46,26 +46,34 @@
 :- import_module int.
 :- import_module list.
 :- import_module require.
+:- import_module std_util.
 
 %----------------------------------------------------------------------------%
 
 empty = dfa_state(no, empty).
 
+    % maybe_bool(BoolValue, MaybeValue).
+    % <=> maybe_func((func(yes) = MaybeValue is semidet), BoolValue).
+:- func maybe_bool(T, bool) = maybe(T).
+
+maybe_bool(MaybeValue, yes) = yes(MaybeValue).
+maybe_bool(_, no) = no.
+
 parse_dfa(Entries, Index) = DfaState :-
-    ( Entries = [word(Index0), bool(AcceptState), word(AcceptIndex),
+    ( if Entries = [word(Index0), bool(AcceptState), word(AcceptIndex),
                  reserved | EdgeEntries]
-    ->
+    then
         Index = Index0,
-        MaybeAcceptIndex = (AcceptState = yes -> yes(AcceptIndex) ; no),
+        MaybeAcceptIndex = maybe_bool(AcceptIndex, AcceptState),
         generate_foldl(length(EdgeEntries) // 3,
             (pred(_Idx::in, edge(CharSetIndex, TargetIndex)::out,
                 in, out) is det -->
-                (
+                ( if
                     [word(CharSetIndex0), word(TargetIndex0), reserved]
-                ->
+                then
                     { CharSetIndex = CharSetIndex0,
                       TargetIndex  = TargetIndex0 }
-                ;
+                else
                     { unexpected($file, $pred, "premature end of edge list") }
                 )
             ),
@@ -75,7 +83,7 @@ parse_dfa(Entries, Index) = DfaState :-
         ),
         expect(is_empty(EdgeRest), $file, $pred, "still have edge entries"),
         DfaState = dfa_state(MaybeAcceptIndex, Edges)
-    ;
+    else
         unexpected($file, $pred, "invalid DFA state record")
     ).
 
