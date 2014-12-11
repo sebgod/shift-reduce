@@ -14,17 +14,13 @@
 
 :- interface.
 
-:- import_module char. % for det_from_int/1, type char.
-
+:- import_module char. % for type char.
+:- import_module charset. % for type charset, in mercury_misc
 :- import_module shift_reduce.egt.entry. % for type parse_func
 
 %----------------------------------------------------------------------------%
 
-:- type charset.
-
 :- func empty = charset.
-
-:- pred is_in_charset(char::in, charset::in) is semidet.
 
 :- func parse_charset `with_type` parse_func(charset) `with_inst` parse_func.
 
@@ -34,13 +30,11 @@
 :- implementation.
 
 :- import_module int. % for <</2
+:- import_module pair. % for type pair
 :- import_module list.
-:- import_module sparse_bitset.
 :- import_module require.
 
 %----------------------------------------------------------------------------%
-
-:- type charset == sparse_bitset(char).
 
 empty = init.
 
@@ -60,17 +54,14 @@ parse_charset(Entries, Index) = Charset :-
         unexpected($file, $pred, "invalid character set record")
     ).
 
-is_in_charset(Char, Charset) :- member(Char, Charset).
-
 :- pred build_charsets(int::in, charset::in, charset::out,
                        entries::in, entries::out).
 
 build_charsets(Offset, !Charset) -->
     ( if [word(StartUnit), word(EndUnit)] then
         {
-            CharCodeRange = (Offset + StartUnit) `..` (Offset + EndUnit),
-            CharList = map(det_from_int, CharCodeRange),
-            insert_list(CharList, !Charset)
+            CharCodeRange = (Offset + StartUnit) - (Offset + EndUnit),
+            !:Charset = union(!.Charset, charset_from_range(CharCodeRange))
         },
         build_charsets(Offset, !Charset)
     else if [_] then

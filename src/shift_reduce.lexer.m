@@ -57,6 +57,7 @@
 :- implementation.
 
 :- import_module array. % for size/1
+:- import_module charset. % for type charset, in mercury_misc
 :- import_module require.
 :- import_module string.
 :- import_module shift_reduce.egt.charset.

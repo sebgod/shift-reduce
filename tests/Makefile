@@ -25,7 +25,7 @@ tags: $(MODULES)
 
 .PHONY: compile
 compile: Mercury.modules
-	@$(foreach test,$(TESTS),$(MMC) --make $(test);)
+	@$(foreach test,$(TESTS),$(MMC) --make $(test) --ml mercury_misc;)
 
 .PHONY: cleantemp
 	rm -f $(DIFFS)

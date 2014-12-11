@@ -15,8 +15,8 @@
 :- interface.
 
 :- import_module bitmap. % for inst bitmap_{di|uo}
+:- import_module charset. % for type charset, in mercury_misc
 :- import_module io.
-:- import_module shift_reduce.egt.charset.
 :- import_module shift_reduce.egt.dfa.
 :- import_module shift_reduce.egt.group.
 :- import_module shift_reduce.egt.lalr.
