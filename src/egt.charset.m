@@ -14,7 +14,6 @@
 
 :- interface.
 
-:- import_module char. % for type char.
 :- import_module charset. % for type charset, in mercury_misc
 :- import_module shift_reduce.egt.entry. % for type parse_func
 
