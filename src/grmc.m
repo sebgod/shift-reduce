@@ -24,26 +24,26 @@
 
     % progdir(ProgDir, !IO):
     %
-    % Strips the name of the executable from io.progname/4.
+    % Strips the name of the executable from `io.progname'/4.
     %
 :- pred progdir(string::out, io::di, io::uo) is det.
 
-    % compiler_executable(Executable, !IO)
+    % compiler_executable(Executable, !IO):
     %
     % Executable is the base name of the compiler executable as needed for
-    % io.system_call/4.
+    % `io.system_call'/4.
     %
 :- pred compiler_executable(string::out, io::di, io::uo) is det.
 
-    % compile(BaseDir, GrammarFile, EgtFile, !IO)
+    % compile(BaseDir, GrammarFile, EgtFile, !IO):
     %
-    % Based on the BaseDir, the compiler executable is executed with the
-    % GrammarFile as the argument, it should be an absolute path.
+    % Based on the `BaseDir', the compiler executable is executed with the
+    % `GrammarFile' as the argument, it should be an absolute path.
     %
     % The predicate will succeed if the command line could execute
     % successfully, and will through an exception otherwise.
     %
-    % EgtFile unifies with the name of the compiled grammar table,
+    % `EgtFile' unifies with the name of the compiled grammar table,
     % currently with the extension: `.egt', meaning enhanced grammar table.
     %
 :- pred compile(string::in, string::in, string::out, flags::in,
