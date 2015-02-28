@@ -24,11 +24,11 @@
 :- type read_pred == pred(byte_index, byte_index, bitmap, bitmap).
 :- inst read_pred == (pred(in, out, bitmap_di, bitmap_uo) is det).
 
-:- pred read_byte(byte::out) `with_type` read_pred `with_inst` read_pred.
-:- pred read_bool(bool::out) `with_type` read_pred `with_inst` read_pred.
-:- pred read_ascii(char::out) `with_type` read_pred `with_inst` read_pred.
-:- pred read_word(word::out) `with_type` read_pred `with_inst` read_pred.
-:- pred read_string(string::out) `with_type` read_pred `with_inst` read_pred.
+:- pred read_byte(byte::out)     : read_pred `with_inst` read_pred.
+:- pred read_bool(bool::out)     : read_pred `with_inst` read_pred.
+:- pred read_ascii(char::out)    : read_pred `with_inst` read_pred.
+:- pred read_word(word::out)     : read_pred `with_inst` read_pred.
+:- pred read_string(string::out) : read_pred `with_inst` read_pred.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -38,7 +38,6 @@
 :- import_module int.
 :- import_module list.
 :- import_module require.
-:- import_module string_encoding.
 
 %----------------------------------------------------------------------------%
 
@@ -73,15 +72,16 @@ read_word(Word, !Index, !Bitmap) :-
 read_string(String, !Index, !Bitmap) :-
     read_chars_acc([], RevUtf16CodeUnits, !Index, !Bitmap),
     reverse(RevUtf16CodeUnits, Utf16CodeUnits),
-    native_code_units_from_unicode(utf16, Utf16CodeUnits, NativeCodeUnits),
-    ( from_code_unit_list(NativeCodeUnits, String0) ->
+    ( if
+        from_utf16_code_unit_list(Utf16CodeUnits, String0)
+    then
         String = String0
-    ;
+    else
         unexpected($file, $pred, "The string is invalid UTF16-z")
     ).
 
-:- pred read_chars_acc(list(int)::in, list(int)::out)
-    `with_type` read_pred `with_inst` read_pred.
+:- pred read_chars_acc(list(int)::in, list(int)::out) : read_pred
+    `with_inst` read_pred.
 
 read_chars_acc(!Chars, !Index, !Bitmap) :-
     read_word(Utf16CodeUnit, !Index, !Bitmap),
