@@ -11,7 +11,7 @@ RESS:=$(patsubst %.exp,%.res,$(EXPS))
 .PHONY: runtests
 runtests:  compile $(RESS)
 
-%.res: %.exp
+%.res %.diff: %.exp
 	@./run_test.sh "test_$(PROJ_CNAME)" "$*" >"$@" 2>"$*.test_err" || true
 	@$(DIFF) $(DIFF_FLAGS) $*.exp $@ 1>$*.diff || true
 
@@ -28,6 +28,7 @@ compile: Mercury.modules
 	@$(foreach test,$(TESTS),$(MMC) --make $(test) --ml mercury_misc;)
 
 .PHONY: cleantemp
+cleantemp:
 	rm -f $(DIFFS)
 	rm -f *.log
 	rm -f *.test_err
@@ -42,3 +43,4 @@ realclean: cleantemp
 	@$(foreach test,$(TESTS),$(MMC) --make $(test).realclean;)
 	rm -rf Mercury
 	rm -f Mercury.modules
+	rm -f *.mh *.err
