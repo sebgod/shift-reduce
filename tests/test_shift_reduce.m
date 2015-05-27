@@ -38,15 +38,13 @@
 %----------------------------------------------------------------------------%
 
 main(!IO) :-
-    progdir(ProgDir, !IO),
     compile(
-        ProgDir / ".." / "tools",
-        ProgDir / "ParserTest.grm",
+        "ParserTest.grm",
         EgtFile,
         [force_recompile],
         !IO),
     from_file(EgtFile, Grammar, !IO),
-    open_input(ProgDir / "ParserTest.txt", OpenResult, !IO),
+    open_input("ParserTest.txt", OpenResult, !IO),
     (
         OpenResult = ok(InputStream),
         Lexer = lexer(InputStream, Grammar),

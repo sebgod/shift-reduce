@@ -1,3 +1,0 @@
-[submodule "tests/grmc"]
-	path = tests/grmc
-	url = https://github.com/sebgod/grmc
